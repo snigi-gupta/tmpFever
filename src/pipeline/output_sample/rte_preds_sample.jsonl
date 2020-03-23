@@ -1,0 +1,10 @@
+{"id": 98767, "predicted_label": "SUPPORTS", "predicted_evidence": [["Realize/Take_a_Chance", 7], ["Gerard_Butler_filmography", 8], ["List_of_Dharma_Productions_films", 18], ["Gerard_Butler_filmography", 12], ["Rooney_Mara", 6]]}
+{"id": 77263, "predicted_label": "SUPPORTS", "predicted_evidence": [["Hyparrhenia", 19], ["Hyparrhenia", 27], ["Hyparrhenia", 59], ["Hyparrhenia", 75], ["Hyparrhenia", 79]]}
+{"id": 144977, "predicted_label": "SUPPORTS", "predicted_evidence": [["Ridgway_-LRB-name-RRB-", 12], ["Ridgway_-LRB-name-RRB-", 28], ["Robert_D._Keppel", 0], ["Cottonwood_Grove_Park", 4], ["Ridgway_-LRB-name-RRB-", 24]]}
+{"id": 129052, "predicted_label": "SUPPORTS", "predicted_evidence": [["Longoria", 11], ["Eva_Longoria", 0], ["Isabella_Bran\u0303a", 1], ["Eileen_Shields", 4], ["Over_Her_Dead_Body", 2]]}
+{"id": 194830, "predicted_label": "SUPPORTS", "predicted_evidence": [["Return_to_Pooh_Corner", 9], ["Return_to_Pooh_Corner", 3], ["Milne_-LRB-surname-RRB-", 85], ["Winnie-the-Pooh", 1], ["Winnie-the-Pooh_-LRB-disambiguation-RRB-", 16]]}
+{"id": 98767, "predicted_label": "NOT ENOUGH INFO", "predicted_evidence": [null]}
+{"id": 77263, "predicted_label": "NOT ENOUGH INFO", "predicted_evidence": [null]}
+{"id": 144977, "predicted_label": "NOT ENOUGH INFO", "predicted_evidence": [null]}
+{"id": 129052, "predicted_label": "NOT ENOUGH INFO", "predicted_evidence": [null]}
+{"id": 194830, "predicted_label": "NOT ENOUGH INFO", "predicted_evidence": [null]}
