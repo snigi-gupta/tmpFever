@@ -15,5 +15,11 @@ class DrqaDocRetriever:
 
         Returns: the k documents
 
+        Example:
+
+        claim: "The Shining was a film made in 1980"
+        k: 5
+        returns: ['Shining_Star', 'Comrade_Artemio', 'Shining_Path', 'The_Shining_-LRB-film-RRB-', 'Shining_Through_-LRB-disambiguation-RRB-']
+
         """
         return self.ranker.closest_docs(claim, k)

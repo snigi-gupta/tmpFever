@@ -115,12 +115,11 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
 
-    # parser.add_argument('--db', type=str, default='data/fever.db', help='/path/to/saved/db.db', )
-    parser.add_argument('--db', type=str, default='data/sample.db', help='/path/to/saved/db.db', )
+    parser.add_argument('--db', type=str, default='data/fever/fever.db', help='/path/to/saved/db.db', )
     # parser.add_argument('archive_file', type=str, default='', help='/path/to/saved/db.db')
     parser.add_argument("--model",type=str, required=False,
-                        default="data/preprocessed/index/fever-tfidf-ngram=2-hash=16777216-tokenizer=simple.npz", help="model")
-    parser.add_argument("--cuda-device", type=int, required=False,  default=-1, help='id of GPU to use (if any)')
+                        default="data/index/fever-tfidf-ngram=2-hash=16777216-tokenizer=simple.npz", help="model")
+    parser.add_argument("--cuda-device", type=int, required=False,  default=0, help='id of GPU to use (if any)')
     parser.add_argument('-o', '--overrides',
                            type=str,
                            default="",
@@ -129,6 +128,24 @@ if __name__ == "__main__":
 
 
     args = parser.parse_args()
+
+    doc_retriever = DrqaDocRetriever(args.model)
+    while True:
+        ############### CLAIM
+        claim = input("enter claim (or q to quit) >>")
+        if claim.lower() == "q":
+            break
+        ############### DOCUMENT RETRIEVAL
+        # ranker = retriever.get_class('tfidf')(tfidf_path=args.model)
+        # # ranker = retriever.get_class('tfidf')()
+        #
+        p_lines = []
+        # pages,_ = ranker.closest_docs(claim,5)
+        pages, _ = doc_retriever.closest_docs(claim, 5)
+        print("Fetched Nearest 5 docs")
+        print(pages)
+
+
 
     logger.info("Load DB")
     db = FeverDocDB(args.db)
@@ -139,11 +156,11 @@ if __name__ == "__main__":
     logger.info("Read datasets")
     # train_ds = DataSet(file="data/fever/train.ns.pages.p{0}.jsonl".format(1), reader=jlr, formatter=formatter)
     # dev_ds = DataSet(file="data/fever/dev.ns.pages.p{0}.jsonl".format(1), reader=jlr, formatter=formatter)
-    train_ds = DataSet(file="data/fever-data/train.jsonl", reader=jlr, formatter=formatter)
-    dev_ds = DataSet(file="data/fever-data/dev.jsonl", reader=jlr, formatter=formatter)
+    #train_ds = DataSet(file="data/fever-data/train.jsonl", reader=jlr, formatter=formatter)
+    #dev_ds = DataSet(file="data/fever-data/dev.jsonl", reader=jlr, formatter=formatter)
 
-    train_ds.read()
-    dev_ds.read()
+    #train_ds.read()
+    #dev_ds.read()
 
     logger.info("Generate vocab for TF-IDF")
     tf = XTermFrequencyFeatureFunction(db)
