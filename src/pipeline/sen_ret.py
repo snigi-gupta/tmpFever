@@ -22,8 +22,8 @@ def tf_idf_sim(claim, lines, tf):
     return tf.lookup(test).reshape(-1).tolist()
 
 
-def append_to_file(claim, sentences, fp):
-    res = {"claim": claim, "sentences": sentences}
+def append_to_file(claim, claim_id, sentences, page_ids, line_indices, fp):
+    res = {"id": claim_id, "claim": claim, "sentences": sentences, "page_ids": page_ids, "indices": lines_indices}
     with open(fp, 'a+') as f:
         j = json.dumps(res)
         f.write(str(j) + '\n')
@@ -73,6 +73,7 @@ if __name__ == "__main__":
         for line in tqdm.tqdm(doc_preds):
             sample = json.loads(line)
             claim = sample["claim"]
+            claim_id = sample["id"]
             lines_field = sample["lines"]
             line_indices_field = sample["indices"]
             pages_field = sample["page_ids"]
@@ -88,9 +89,12 @@ if __name__ == "__main__":
             sentences_l = list(sorted(scores, reverse=True, key=lambda elem: elem[0]))
 
             sentences = [s[3] for s in sentences_l[:args.n_sentences]]
+            page_ids = [s[1] for s in sentences_l[:args.n_sentences]]
+            line_indices = [s[2] for s in sentences_l[:args.n_sentences]]
             evidence = " ".join(sentences)
             print("Sentences: ", sentences)
-            append_to_file(claim, sentences, args.output)
+            append_to_file(claim, claim_id, sentences, page_ids, line_indices, args.output)
+
 
 
 

@@ -10,12 +10,12 @@ LogHelper.setup()
 logger = LogHelper.get_logger(__name__)  # pylint: disable=invalid-name
 
 
-def append_to_file(claim, p_lines, db, output):
+def append_to_file(claim, claim_id, p_lines, db, output):
     lines_field = [pl[0] for pl in p_lines]
     line_indices_field = [pl[2] for pl in p_lines]
     pages_field = [pl[1] for pl in p_lines]
 
-    res = {"claim": claim, "lines": lines_field, "indices": line_indices_field, "page_ids": pages_field}
+    res = {"id": claim_id, "claim": claim, "lines": lines_field, "indices": line_indices_field, "page_ids": pages_field}
     with open(output, 'a+') as out:
         j = json.dumps(res)
         out.write(str(j) + '\n')
@@ -49,6 +49,7 @@ if __name__ == "__main__":
         for line in tqdm.tqdm(dset):
             sample = json.loads(line)
             claim = sample["claim"]
+            claim_id = sample["id"]
 
             pages, _ = doc_retriever.closest_docs(claim, args.n_docs)
             p_lines = []
@@ -56,5 +57,5 @@ if __name__ == "__main__":
                 lines = db.get_doc_lines(page)
                 lines = [line.split("\t")[1] if len(line.split("\t")[1]) > 1 else "" for line in lines.split("\n")]
                 p_lines.extend(zip(lines, [page] * len(lines), range(len(lines))))
-            append_to_file(claim, p_lines, db, args.output)
+            append_to_file(claim, claim_id, p_lines, db, args.output)
 

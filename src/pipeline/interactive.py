@@ -16,7 +16,6 @@ from rte.riedel.data import FEVERGoldFormatter, FEVERLabelSchema
 # from scripts.retrieval.sentence.process_tfidf import XTermFrequencyFeatureFunction
 from retrieval.process_tfidf import XTermFrequencyFeatureFunction
 
-
 from rte.tmp.nei_rte_model import NeiRteModel
 
 LogHelper.setup()
