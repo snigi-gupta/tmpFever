@@ -11,9 +11,20 @@ class RnnRteModel(nn.Module):
         super().__init__()
         self.device = device
 
+        self.embedding = nn.Embedding(vocab_size, embedding_dim)
+        self.rnn = nn.RNN(embedding_dim, hidden_dim)
+        self.fc = nn.Linear(hidden_dim, output_dim)
+        self.dout = nn.Dropout(p=dropout)
+
     def forward(self, claim: str, sentences: list) -> str:
-        pred = 0
         print("IN RNN MODEL, received ", claim, sentences)
+        pred = 0
+        x = self.embedding(text)
+        x, hidden = self.rnn(x)
+        print(f"input size: {text.size()}")
+        print(f"rnn output size: {x.size()}")
+        print(f"hidden size: {hidden.size()}")
+        hidden = hidden.squeeze(0).squeeze(1)
         return self._label_int_to_str(pred) 
 
     @staticmethod
