@@ -1,0 +1,15 @@
+{
+    "data_dir": "../../../../data/tmp",
+    "embeddings_file": "../../data/embeddings/glove.840B.300d.txt",
+    "target_dir": "../../../../data/tmp/preprocessed",
+
+    "lowercase": false,
+    "ignore_punctuation": true,
+    "num_words": null,
+    "stopwords": [],
+    "labeldict": {"SUPPORTS": 0,
+                  "REFUTES": 1,
+                  "NOT ENOUGH INFO": 2},
+    "bos": "_BOS_",
+    "eos": "_EOS_"
+}
