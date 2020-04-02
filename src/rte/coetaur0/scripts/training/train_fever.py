@@ -2,7 +2,6 @@
 Train the ESIM model on the preprocessed SNLI dataset.
 """
 # Aurelien Coet, 2018.
-# Code largely based off this repo https://github.com/coetaur0/ESIM.git
 
 import os
 import argparse
@@ -14,9 +13,9 @@ import matplotlib.pyplot as plt
 import torch.nn as nn
 
 from torch.utils.data import DataLoader
-from esim.data import NLIDataset
-from esim.model import ESIM
-from utils import train, validate
+from rte.coetaur0.esim.fever_data import NLIDataset
+from rte.coetaur0.esim.model import ESIM
+from .utils import train, validate
 
 
 def main(train_file,

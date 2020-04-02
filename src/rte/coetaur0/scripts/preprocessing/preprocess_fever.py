@@ -3,7 +3,6 @@
 Preprocess the SNLI dataset and word embeddings to be used by the ESIM model.
 """
 # Aurelien Coet, 2018.
-# Code largely based off this repo https://github.com/coetaur0/ESIM.git
 
 import os
 import pickle

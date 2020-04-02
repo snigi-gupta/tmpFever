@@ -2,8 +2,6 @@
 Definition of the ESIM model.
 """
 # Aurelien Coet, 2018.
-# https://github.com/coetaur0/ESIM.git 
-
 
 import torch
 import torch.nn as nn

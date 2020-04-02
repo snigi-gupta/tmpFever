@@ -2,7 +2,6 @@
 Preprocessor and dataset definition for NLI.
 """
 # Aurelien Coet, 2018.
-# https://github.com/coetaur0/ESIM.git
 
 import string
 import torch

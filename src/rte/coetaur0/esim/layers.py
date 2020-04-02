@@ -2,7 +2,6 @@
 Definition of custom layers for the ESIM model.
 """
 # Aurelien Coet, 2018.
-# https://github.com/coetaur0/ESIM.git
 
 import torch.nn as nn
 
