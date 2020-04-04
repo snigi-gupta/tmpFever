@@ -164,7 +164,6 @@ class Preprocessor(object):
             label_names = set(data["labels"])
             self.labeldict = {label_name: i
                               for i, label_name in enumerate(label_names)}
-        print("labels dict: ", self.labeldict)
 
     def words_to_indices(self, sentence):
         """
