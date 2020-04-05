@@ -14,24 +14,36 @@ from rte.coetaur0.esim.model import ESIM
 from rte.coetaur0.esim.utils import correct_predictions
 
 
-def test(model, dataloader):
+test_data = "/home/kikuchio/nlp/src/data/tmp/preprocessed/test_data.pkl"
+checkpoint = "/home/kikuchio/nlp/src/rte/coetaur0/data/checkpoints/fever/best.pth.tar"
+batch_size = 32
+out_file = "/home/kikuchio/nlp/src/rte/coetaur0/data/test_preds.txt"
+
+
+def append_preds_to_file(preds, out_file):
+    for output in preds:
+        p = output.item()
+        label_text = "NOT ENOUGH INFO"
+        if p == 0:
+            label_text = "SUPPORTS"
+        elif p == 1:
+            label_text = "REFUTES"
+        with open(out_file, "a+") as pred_file:
+            pred_file.write(label_text + "\n")
+
+
+def test(model, dataloader, out_file):
     """
     Test the accuracy of a model on some labelled test dataset.
 
     Args:
         model: The torch module on which testing must be performed.
         dataloader: A DataLoader object to iterate over some dataset.
-
-    Returns:
-        batch_time: The average time to predict the classes of a batch.
-        total_time: The total time to process the whole dataset.
-        accuracy: The accuracy of the model on the input data.
     """
     # Switch the model to eval mode.
     model.eval()
     device = model.device
 
-    time_start = time.time()
     batch_time = 0.0
     accuracy = 0.0
 
@@ -52,17 +64,12 @@ def test(model, dataloader):
                              hypotheses,
                              hypotheses_lengths)
 
-            accuracy += correct_predictions(probs, labels)
-            batch_time += time.time() - batch_start
+            _, out_classes = probs.max(dim=1)
 
-    batch_time /= len(dataloader)
-    total_time = time.time() - time_start
-    accuracy /= (len(dataloader.dataset))
-
-    return batch_time, total_time, accuracy
+            append_preds_to_file(out_classes, out_file)
 
 
-def main(test_file, pretrained_file, batch_size=32):
+def main(test_file, pretrained_file, out_file, batch_size=32):
     """
     Test the ESIM model with pretrained weights on some dataset.
 
@@ -109,23 +116,24 @@ def main(test_file, pretrained_file, batch_size=32):
     print(20 * "=",
           " Testing ESIM model on device: {} ".format(device),
           20 * "=")
-    batch_time, total_time, accuracy = test(model, test_loader)
-
-    print("-> Average batch processing time: {:.4f}s, total test time:\
- {:.4f}s, accuracy: {:.4f}%".format(batch_time, total_time, (accuracy*100)))
+    test(model, test_loader, out_file)
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Test the ESIM model on\
- some dataset")
-    parser.add_argument("test_data",
-                        help="Path to a file containing preprocessed test data")
-    parser.add_argument("checkpoint",
-                        help="Path to a checkpoint with a pretrained model")
-    parser.add_argument("--batch_size", type=int, default=32,
-                        help="Batch size to use during testing")
-    args = parser.parse_args()
+    #parser = argparse.ArgumentParser(description="Test the ESIM model on\
+    # some dataset")
+    #parser.add_argument("test_data",
+    #                    help="Path to a file containing preprocessed test data", type=str,
+    #                    default="../../../../../data/tmp/preprocessed/test_data.pkl")
+    #parser.add_argument("checkpoint", type=str,
+    #                    help="Path to a checkpoint with a pretrained model",
+    #                    default="../../data/checkpoints/best.pth.tar")
+    #parser.add_argument("--batch_size", type=int, default=32,
+    #                    help="Batch size to use during testing")
+    #args = parser.parse_args()
 
-    main(args.test_data,
-         args.checkpoint,
-         args.batch_size)
+
+    main(test_data,
+         checkpoint, 
+         out_file,
+         batch_size)

@@ -22,7 +22,7 @@ def preprocess_SNLI_data(inputdir,
                          stopwords=[],
                          labeldict={},
                          bos=None,
-                         eos=None):
+                         eos=None, testing=False):
     """
     Preprocess the data from the SNLI corpus so it can be used by the
     ESIM model.
@@ -63,10 +63,10 @@ def preprocess_SNLI_data(inputdir,
             train_file = file
         elif fnmatch.fnmatch(file, "dev*.jsonl"):
             dev_file = file
-        elif fnmatch.fnmatch(file, "test*.jsonl"):
+        elif fnmatch.fnmatch(file, "sen_preds.jsonl"):
             test_file = file
+            print("test file is ", test_file)
 
-    # -------------------- Train data preprocessing -------------------- #
     preprocessor = Preprocessor(lowercase=lowercase,
                                 ignore_punctuation=ignore_punctuation,
                                 num_words=num_words,
@@ -75,49 +75,61 @@ def preprocess_SNLI_data(inputdir,
                                 bos=bos,
                                 eos=eos)
 
-    print(20*"=", " Preprocessing train set ", 20*"=")
-    print("\t* Reading data...")
-    data = preprocessor.read_data(os.path.join(inputdir, train_file))
+    # -------------------- Train data preprocessing -------------------- #
+    if not testing:
+        print(20*"=", " Preprocessing train set ", 20*"=")
+        print("\t* Reading data...")
+        data = preprocessor.read_data(os.path.join(inputdir, train_file))
 
-    print("\t* Computing worddict and saving it...")
-    preprocessor.build_worddict(data)
-    with open(os.path.join(targetdir, "worddict.pkl"), "wb") as pkl_file:
-        pickle.dump(preprocessor.worddict, pkl_file)
+        print("\t* Computing worddict and saving it...")
+        preprocessor.build_worddict(data)
+        with open(os.path.join(targetdir, "worddict.pkl"), "wb") as pkl_file:
+            pickle.dump(preprocessor.worddict, pkl_file)
 
-    print("\t* Transforming words in premises and hypotheses to indices...")
-    transformed_data = preprocessor.transform_to_indices(data)
-    print("\t* Saving result...")
-    with open(os.path.join(targetdir, "train_data.pkl"), "wb") as pkl_file:
-        pickle.dump(transformed_data, pkl_file)
+        print("\t* Transforming words in premises and hypotheses to indices...")
+        transformed_data = preprocessor.transform_to_indices(data)
+        print("\t* Saving result...")
+        with open(os.path.join(targetdir, "train_data.pkl"), "wb") as pkl_file:
+            pickle.dump(transformed_data, pkl_file)
 
-    # -------------------- Validation data preprocessing -------------------- #
-    print(20*"=", " Preprocessing dev set ", 20*"=")
-    print("\t* Reading data...")
-    data = preprocessor.read_data(os.path.join(inputdir, dev_file))
+        # -------------------- Validation data preprocessing -------------------- #
+        print(20*"=", " Preprocessing dev set ", 20*"=")
+        print("\t* Reading data...")
+        data = preprocessor.read_data(os.path.join(inputdir, dev_file))
 
-    print("\t* Transforming words in premises and hypotheses to indices...")
-    transformed_data = preprocessor.transform_to_indices(data)
-    print("\t* Saving result...")
-    with open(os.path.join(targetdir, "dev_data.pkl"), "wb") as pkl_file:
-        pickle.dump(transformed_data, pkl_file)
+        print("\t* Transforming words in premises and hypotheses to indices...")
+        transformed_data = preprocessor.transform_to_indices(data)
+        print("\t* Saving result...")
+        with open(os.path.join(targetdir, "dev_data.pkl"), "wb") as pkl_file:
+            pickle.dump(transformed_data, pkl_file)
+
+        #-------------------- Embeddings preprocessing -------------------- #
+        print(20*"=", " Preprocessing embeddings ", 20*"=")
+        print("\t* Building embedding matrix and saving it...")
+        embed_matrix = preprocessor.build_embedding_matrix(embeddings_file)
+        with open(os.path.join(targetdir, "embeddings.pkl"), "wb") as pkl_file:
+            pickle.dump(embed_matrix, pkl_file)
 
     ## -------------------- Test data preprocessing -------------------- #
-    #print(20*"=", " Preprocessing test set ", 20*"=")
-    #print("\t* Reading data...")
-    #data = preprocessor.read_data(os.path.join(inputdir, test_file))
+    # since the test dataset depends on the predictions by the earlier stages
+    # of the pipeline, we don't yet have the predicted evidence on which
+    # the rte part is to be run, therefore we cannot preprocess the test
+    # dataset without making sure that we ran the previous stages.
+    if testing:
+        with open(os.path.join(targetdir, "worddict.pkl"), "rb") as pkl_file:
+            preprocessor.worddict = pickle.load(pkl_file)
 
-    #print("\t* Transforming words in premises and hypotheses to indices...")
-    #transformed_data = preprocessor.transform_to_indices(data)
-    #print("\t* Saving result...")
-    #with open(os.path.join(targetdir, "test_data.pkl"), "wb") as pkl_file:
-    #    pickle.dump(transformed_data, pkl_file)
+        print(20*"=", " Preprocessing test set ", 20*"=")
+        print("\t* Reading data...")
 
-    # -------------------- Embeddings preprocessing -------------------- #
-    print(20*"=", " Preprocessing embeddings ", 20*"=")
-    print("\t* Building embedding matrix and saving it...")
-    embed_matrix = preprocessor.build_embedding_matrix(embeddings_file)
-    with open(os.path.join(targetdir, "embeddings.pkl"), "wb") as pkl_file:
-        pickle.dump(embed_matrix, pkl_file)
+        # here, test_file should contain predicted evidence
+        data = preprocessor.read_data(os.path.join(inputdir, test_file), testing)
+
+        print("\t* Transforming words in premises and hypotheses to indices...")
+        transformed_data = preprocessor.transform_to_indices(data)
+        print("\t* Saving result...")
+        with open(os.path.join(targetdir, "test_data.pkl"), "wb") as pkl_file:
+            pickle.dump(transformed_data, pkl_file)
 
 
 if __name__ == "__main__":
@@ -128,6 +140,13 @@ if __name__ == "__main__":
         "--config",
         default=default_config,
         help="Path to a configuration file for preprocessing SNLI"
+    )
+    parser.add_argument(
+        "--testing",
+        type=str,
+        default=False,
+        help="Indicates whether preprocessing is being invoked on the testing\
+        dataset, or on the embeddings and the training and dev datasets"
     )
     args = parser.parse_args()
 
@@ -141,7 +160,8 @@ if __name__ == "__main__":
     with open(os.path.normpath(config_path), "r") as cfg_file:
         config = json.load(cfg_file)
 
-    print("Config file is: ", cfg_file)
+    config["testing"] = True if args.testing == "True" else False
+    print("Config is: ", config)
 
     preprocess_SNLI_data(
         os.path.normpath(os.path.join(script_dir, config["data_dir"])),
@@ -153,5 +173,6 @@ if __name__ == "__main__":
         stopwords=config["stopwords"],
         labeldict=config["labeldict"],
         bos=config["bos"],
-        eos=config["eos"]
+        eos=config["eos"],
+        testing=config["testing"]
     )
