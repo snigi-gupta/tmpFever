@@ -6,7 +6,6 @@ Preprocessor and dataset definition for NLI.
 import string
 import torch
 import numpy as np
-import json
 
 from collections import Counter
 from torch.utils.data import Dataset
@@ -56,7 +55,7 @@ class Preprocessor(object):
         self.bos = bos
         self.eos = eos
 
-    def read_data(self, filepath, testing=False):
+    def read_data(self, filepath):
         """
         Read the premises, hypotheses and labels from some NLI dataset's
         file and return them in a dictionary. The file should be in the same
@@ -81,23 +80,18 @@ class Preprocessor(object):
                                          for key in string.punctuation})
 
             # Ignore the headers on the first line of the file.
-            #next(input_data)
+            next(input_data)
 
             for line in input_data:
-                line = json.loads(line)
+                line = line.strip().split("\t")
 
-                pair_id = line["id"]
-                premise = line["evidence"]
-                hypothesis = line["claim"]
+                # Ignore sentences that have no gold label.
+                if line[0] == "-":
+                    continue
 
-                max_prem = premise[0]
-                if not testing:
-                    for i in range(1, len(premise)):
-                        if len(premise[i]) > len(max_prem):
-                            max_prem = premise[i]
-                    premise = [p[3] for p in max_prem]
-                    labels.append(line["label"])
-                premise = " ".join(premise)
+                pair_id = line[7]
+                premise = line[1]
+                hypothesis = line[2]
 
                 # Remove '(' and ')' from the premises and hypotheses.
                 premise = premise.translate(parentheses_table)
@@ -116,13 +110,13 @@ class Preprocessor(object):
                                  if w not in self.stopwords])
                 hypotheses.append([w for w in hypothesis.rstrip().split()
                                    if w not in self.stopwords])
+                labels.append(line[0])
                 ids.append(pair_id)
 
             return {"ids": ids,
                     "premises": premises,
                     "hypotheses": hypotheses,
-                    #"labels": labels}
-                    "labels": ["NOT ENOUGH INFO"] * len(premises) if testing else labels}
+                    "labels": labels}
 
     def build_worddict(self, data):
         """
@@ -166,7 +160,6 @@ class Preprocessor(object):
             label_names = set(data["labels"])
             self.labeldict = {label_name: i
                               for i, label_name in enumerate(label_names)}
-        print("labels dict: ", self.labeldict)
 
     def words_to_indices(self, sentence):
         """

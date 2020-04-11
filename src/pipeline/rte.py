@@ -40,6 +40,7 @@ if __name__ == "__main__":
     parser.add_argument('--model', type=str, required=False, help='path to pretrained model', )
     parser.add_argument('--db', type=str, default='data/fever/fever.db', help='/path/to/saved/db.db', )
     parser.add_argument('--sens', type=str, default='data/tmp/sen_preds.jsonl', help='file containing the predicted documents', )
+    parser.add_argument('--rte_preds', type=str, default='rte/coetaur0/data/test_preds.txt', help='file containing the predicted labels', )
     parser.add_argument('--output', type=str, default='data/tmp/predictions.jsonl', help='file to write predicted sentences to', )
     parser.add_argument('--train_ds', type=str, default='data/fever-data/train.jsonl', help='training dataset', )
     parser.add_argument('--dev_ds', type=str, default='data/fever-data/dev.jsonl', help='development dataset', )
@@ -70,30 +71,38 @@ if __name__ == "__main__":
 
     ##### RTE IMPLEMENTATION ############
     #rte_impl = NeiRteModel
-    rte_impl = RnnRteModel
-    if args.model:
-        logger.info("loading saved model...")
-        rte_model = rte_impl.from_state(args.model, args.cuda_device)
-    else:
-        rte_model = rte_impl(args.cuda_device)
+    #rte_impl = RnnRteModel
+    #if args.model:
+    #    logger.info("loading saved model...")
+    #    rte_model = rte_impl.from_state(args.model, args.cuda_device)
+    #else:
+    #    rte_model = rte_impl(args.cuda_device)
     ####################################################
 
     logger.info("processing predicted sentences")
-    with open(args.sens, 'r') as sen_preds:
+    with open(args.sens, 'r') as sen_preds, open(args.rte_preds, 'r') as rte_preds:
         for line in tqdm.tqdm(sen_preds):
             sample = json.loads(line)
             claim = sample["claim"]
             claim_id = sample["id"]
-            sentences = sample["sentences"]
+            sentences = sample["evidence"]
             line_indices_field = sample["indices"]
             pages_field = sample["page_ids"]
 
-            pred = rte_model(claim, sentences)
+            pred = int(rte_preds.readline().strip())
+            if pred == 2:
+                pred = "NOT ENOUGH INFO"
+            elif pred == 1:
+                pred = "REFUTES"
+            elif pred == 0:
+                pred = "SUPPORTS"
+            print("rte pred: ", pred)
+
 
             if pred != "NOT ENOUGH INFO":
                 evidence = [[page_id, index] for page_id, index in zip(pages_field, line_indices_field)]
             else:
-                evidence = [None]
+                evidence = [["NULL", 0]]
 
             append_to_file(claim_id, pred, evidence, args.output)
 
