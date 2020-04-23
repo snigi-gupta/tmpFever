@@ -28,7 +28,8 @@ class Preprocessor(object):
                  stopwords=[],
                  labeldict={},
                  bos=None,
-                 eos=None):
+                 eos=None,
+                 concat_premises=True):
         """
         Args:
             lowercase: A boolean indicating whether the words in the datasets
@@ -55,6 +56,43 @@ class Preprocessor(object):
         self.labeldict = labeldict
         self.bos = bos
         self.eos = eos
+        self.concat_premises = concat_premises
+
+    def preprocess_premises_concat(self, premise, parentheses_table, punct_table):
+        premise = " ".join(premise)
+
+        # Remove '(' and ')' from the premises
+        premise = premise.translate(parentheses_table)
+
+        if self.lowercase:
+            premise = premise.lower()
+
+        if self.ignore_punctuation:
+            premise = premise.translate(punct_table)
+
+        # Each premise is split into a list of words.
+        return [w for w in premise.rstrip().split()
+                                 if w not in self.stopwords]
+
+
+    def preprocess_premises_flat(self, premise, parentheses_table, punct_table):
+        """
+        preprocess the premises (evidence) without concatenating all the 
+        sentences into one sentence
+        """
+        # Remove '(' and ')' from the premises
+        premise = [p.translate(parentheses_table) for p in premise]
+
+        if self.lowercase:
+            premise = [p.lower() for p in premise]
+
+        if self.ignore_punctuation:
+            premise = [p.translate(punct_table) for p in premise]
+
+        # Each premise is split into a list of words.
+        return [[w for w in p.rstrip().split()
+                                 if w not in self.stopwords] for p in premise]
+
 
     def read_data(self, filepath, testing=False):
         """
@@ -97,23 +135,38 @@ class Preprocessor(object):
                             max_prem = premise[i]
                     premise = [p[3] for p in max_prem]
                     labels.append(line["label"])
-                premise = " ".join(premise)
+                #if concat_premises:
+                #    premise = " ".join(premise)
 
-                # Remove '(' and ')' from the premises and hypotheses.
-                premise = premise.translate(parentheses_table)
+                ## Remove '(' and ')' from the premises and hypotheses.
+                #premise = premise.translate(parentheses_table)
+                #hypothesis = hypothesis.translate(parentheses_table)
+
+                #if self.lowercase:
+                #    premise = premise.lower()
+                #    hypothesis = hypothesis.lower()
+
+                #if self.ignore_punctuation:
+                #    premise = premise.translate(punct_table)
+                #    hypothesis = hypothesis.translate(punct_table)
+
+                if self.concat_premises:
+                    premise = self.preprocess_premises_concat(premise, parentheses_table, punct_table)
+                else:
+                    premise = self.preprocess_premises_flat(premise, parentheses_table, punct_table)
+
                 hypothesis = hypothesis.translate(parentheses_table)
 
                 if self.lowercase:
-                    premise = premise.lower()
                     hypothesis = hypothesis.lower()
 
                 if self.ignore_punctuation:
-                    premise = premise.translate(punct_table)
                     hypothesis = hypothesis.translate(punct_table)
 
                 # Each premise and hypothesis is split into a list of words.
-                premises.append([w for w in premise.rstrip().split()
-                                 if w not in self.stopwords])
+                #premises.append([w for w in premise.rstrip().split()
+                #                 if w not in self.stopwords])
+                premises.append(premise)
                 hypotheses.append([w for w in hypothesis.rstrip().split()
                                    if w not in self.stopwords])
                 ids.append(pair_id)
@@ -136,7 +189,13 @@ class Preprocessor(object):
                 'read_data' method of the Preprocessor class.
         """
         words = []
-        [words.extend(sentence) for sentence in data["premises"]]
+        if self.concat_premises:
+            [words.extend(sentence) for sentence in data["premises"]]
+        else:
+            for sample in data["premises"]:
+                for sentence in sample:
+                    for word in sentence:
+                        words.append(word)
         [words.extend(sentence) for sentence in data["hypotheses"]]
 
         counts = Counter(words)
@@ -249,7 +308,10 @@ class Preprocessor(object):
             else:
                 transformed_data["labels"].append(self.labeldict[label])
 
-            indices = self.words_to_indices(premise)
+            if self.concat_premises:
+                indices = self.words_to_indices(premise)
+            else:
+                indices = [self.words_to_indices(p) for p in premise]
             transformed_data["premises"].append(indices)
 
             indices = self.words_to_indices(data["hypotheses"][i])
@@ -326,7 +388,8 @@ class NLIDataset(Dataset):
                  data,
                  padding_idx=0,
                  max_premise_length=None,
-                 max_hypothesis_length=None):
+                 max_hypothesis_length=None,
+                 premises_concat=True):
         """
         Args:
             data: A dictionary containing the preprocessed premises,
@@ -342,10 +405,18 @@ class NLIDataset(Dataset):
                 the length of the longest hypothesis in 'data' is used.
                 Defaults to None.
         """
-        self.premises_lengths = [len(seq) for seq in data["premises"]]
+        self.premises_concat = premises_concat
+        self.max_premise_length = max_premise_length
+        if self.premises_concat:
+            self.premises_lengths = [len(seq) for seq in data["premises"]]
+        else: 
+            self.premises_lengths = [[len(seq) for seq in sen] for sen in data["premises"]]
         self.max_premise_length = max_premise_length
         if self.max_premise_length is None:
-            self.max_premise_length = max(self.premises_lengths)
+            if self.premises_concat:
+                self.max_premise_length = max(self.premises_lengths)
+            else:
+                self.max_premise_length = max([max(l) for l in self.premises_lengths])
 
         self.hypotheses_lengths = [len(seq) for seq in data["hypotheses"]]
         self.max_hypothesis_length = max_hypothesis_length
@@ -354,10 +425,14 @@ class NLIDataset(Dataset):
 
         self.num_sequences = len(data["premises"])
 
+        if self.premises_concat:
+            premises = torch.ones((self.num_sequences, self.max_premise_length),
+                dtype=torch.long) * padding_idx
+        else:
+            premises = [None] * self.num_sequences
+
         self.data = {"ids": [],
-                     "premises": torch.ones((self.num_sequences,
-                                             self.max_premise_length),
-                                            dtype=torch.long) * padding_idx,
+                     "premises": premises,
                      "hypotheses": torch.ones((self.num_sequences,
                                                self.max_hypothesis_length),
                                               dtype=torch.long) * padding_idx,
@@ -366,11 +441,20 @@ class NLIDataset(Dataset):
         for i, premise in enumerate(data["premises"]):
             self.data["ids"].append(data["ids"][i])
             end = min(len(premise), self.max_premise_length)
-            self.data["premises"][i][:end] = torch.tensor(premise[:end])
+            if self.premises_concat:
+                self.data["premises"][i][:end] = torch.tensor(premise[:end])
+            else:
+                self.data["premises"][i] = [None] * len(data["premises"][i])
+                for j, sentence in enumerate(premise, 0):
+                    self.data["premises"][i][j] = torch.ones(self.max_premise_length) * padding_idx
+                    sen_end = min(len(sentence), self.max_premise_length)
+                    self.data["premises"][i][j][:sen_end] = torch.tensor(sentence[:sen_end])
 
             hypothesis = data["hypotheses"][i]
             end = min(len(hypothesis), self.max_hypothesis_length)
             self.data["hypotheses"][i][:end] = torch.tensor(hypothesis[:end])
+        print("first 10 premises: ", data["premises"][:10])
+        print("first 10 premises as tensors: ", self.data["premises"][:10])
 
     def __len__(self):
         return self.num_sequences
@@ -378,8 +462,8 @@ class NLIDataset(Dataset):
     def __getitem__(self, index):
         return {"id": self.data["ids"][index],
                 "premise": self.data["premises"][index],
-                "premise_length": min(self.premises_lengths[index],
-                                      self.max_premise_length),
+                "premise_length": [min(sen_len, self.max_premise_length)
+                                   for sen_len in self.premises_lengths[index]],
                 "hypothesis": self.data["hypotheses"][index],
                 "hypothesis_length": min(self.hypotheses_lengths[index],
                                          self.max_hypothesis_length),
