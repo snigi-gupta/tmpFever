@@ -23,7 +23,7 @@ def tf_idf_sim(claim, lines, tf):
 
 
 def append_to_file(claim, claim_id, sentences, page_ids, line_indices, fp):
-    res = {"id": claim_id, "claim": claim, "sentences": sentences, "page_ids": page_ids, "indices": line_indices}
+    res = {"id": claim_id, "claim": claim, "evidence": sentences, "page_ids": page_ids, "indices": lines_indices}
     with open(fp, 'a+') as f:
         j = json.dumps(res)
         f.write(str(j) + '\n')

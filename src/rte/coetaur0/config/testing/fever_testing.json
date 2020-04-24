@@ -1,0 +1,9 @@
+{
+    "test_files": {"matched": "../../../../data/tmp/preprocessed/test_data.pkl",
+                   "mismatched": "../../data/preprocessed/MNLI/mismatched_test_data.pkl"},
+    "labeldict": {"SUPPORTS": 0,
+                  "REFUTES": 1,
+                  "NOT ENOUGH INFO": 2},
+    "output_dir": "../../data/results",
+    "batch_size": 32
+}
