@@ -22,7 +22,9 @@ def preprocess_SNLI_data(inputdir,
                          stopwords=[],
                          labeldict={},
                          bos=None,
-                         eos=None, testing=False):
+                         eos=None, 
+                         testing=False,
+                         concat_premises=True):
     """
     Preprocess the data from the SNLI corpus so it can be used by the
     ESIM model.
@@ -73,7 +75,7 @@ def preprocess_SNLI_data(inputdir,
                                 stopwords=stopwords,
                                 labeldict=labeldict,
                                 bos=bos,
-                                eos=eos)
+                                eos=eos, concat_premises=concat_premises)
 
     # -------------------- Train data preprocessing -------------------- #
     if not testing:
@@ -141,13 +143,6 @@ if __name__ == "__main__":
         default=default_config,
         help="Path to a configuration file for preprocessing SNLI"
     )
-    parser.add_argument(
-        "--testing",
-        type=str,
-        default=False,
-        help="Indicates whether preprocessing is being invoked on the testing\
-        dataset, or on the embeddings and the training and dev datasets"
-    )
     args = parser.parse_args()
 
     script_dir = os.path.dirname(os.path.realpath(__file__))
@@ -160,7 +155,6 @@ if __name__ == "__main__":
     with open(os.path.normpath(config_path), "r") as cfg_file:
         config = json.load(cfg_file)
 
-    config["testing"] = True if args.testing == "True" else False
     print("Config is: ", config)
 
     preprocess_SNLI_data(
@@ -174,5 +168,6 @@ if __name__ == "__main__":
         labeldict=config["labeldict"],
         bos=config["bos"],
         eos=config["eos"],
-        testing=config["testing"]
+        testing=config["testing"],
+        concat_premises=config["concat_premises"]
     )
