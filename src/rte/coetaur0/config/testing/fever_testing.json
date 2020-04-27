@@ -6,9 +6,5 @@
   "aggregator_checkpoint": "../../data/checkpoints/fever/best_agg.pth.tar",
 
   "out_file": "/home/kikuchio/nlp/src/rte/coetaur0/data/test_preds.txt",
-  "use_aggregator": true,
-
-  "num_sentences": 5,
-  "max_premise_length": 100,
-  "premises_concat": false
+  "use_aggregator": true
 }

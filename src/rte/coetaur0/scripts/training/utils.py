@@ -134,8 +134,12 @@ def validate(model, dataloader, criterion):
     return epoch_time, epoch_loss, epoch_accuracy
 
 
-def validate_with_agg(model, dataloader, criterion, aggregator, agg_criterion):
-    num_sentences = 5
+def validate_with_agg(model,
+                      dataloader,
+                      criterion,
+                      aggregator,
+                      agg_criterion,
+                      num_sentences):
     model.eval()
     device = model.device
 
@@ -153,56 +157,6 @@ def validate_with_agg(model, dataloader, criterion, aggregator, agg_criterion):
             hypotheses = batch["hypothesis"]
             hypotheses_lengths = batch["hypothesis_length"]
             labels = batch["label"].to(device)
-
-            # flat_batch_prems = torch.zeros(0, dtype=torch.long).to(device)
-            # flat_batch_prem_lens = torch.zeros(0, dtype=torch.long).to(device)
-            # flat_batch_hypos = torch.zeros(0, dtype=torch.long).to(device)
-            # flat_batch_hypo_lens = torch.zeros(0, dtype=torch.long).to(device)
-            # flat_batch_labels = torch.zeros(0, dtype=torch.long).to(device)
-            #
-            # for i in range(len(premises)):
-            #     prem = premises[i][:num_sentences]
-            #     hypo = hypotheses[i].to(device)
-            #     prem_len = premises_lengths[i][:num_sentences]
-            #     hypo_len = torch.tensor(hypotheses_lengths[i]).to(device)
-            #     label = labels[i].to(device)
-            #
-            #     # feed each of the sentences in prem to the model separately
-            #     sen_scores = torch.zeros(0)
-            #     hypo_len = torch.tensor(hypo_len, dtype=torch.long).unsqueeze(0).unsqueeze(1)
-            #     label = torch.tensor(label, dtype=torch.long).unsqueeze(0).unsqueeze(1)
-            #     hypo = hypo.unsqueeze(0)
-            #     for sentence, sen_len in zip(prem, prem_len):
-            #         sen_len = torch.tensor(sen_len, dtype=torch.long).unsqueeze(0).unsqueeze(1)
-            #         sentence = sentence.unsqueeze(0)
-            #         flat_batch_prems = torch.cat([flat_batch_prems, sentence.to(device)])
-            #         flat_batch_prem_lens = torch.cat([flat_batch_prem_lens, sen_len.to(device)])
-            #         flat_batch_hypos = torch.cat([flat_batch_hypos, hypo.to(device)])
-            #         flat_batch_hypo_lens = torch.cat([flat_batch_hypo_lens, hypo_len.to(device)])
-            #         flat_batch_labels = torch.cat([flat_batch_labels, label.to(device)])
-            #
-            # logits, probs = model(flat_batch_prems.to(device),
-            #                       flat_batch_prem_lens.squeeze().to(device),
-            #                       flat_batch_hypos.to(device),
-            #                       flat_batch_hypo_lens.squeeze().to(device))
-            # total_num_sens += logits.shape[0]
-            # num_classes = logits.shape[1]
-            # input_dim = num_sentences * num_classes * 2
-            # rolled_logits = torch.zeros((len(labels), input_dim))
-            # sen_end_index = 0
-            # for i in range(len(premises)):
-            #     prem_len = premises_lengths[i][:num_sentences]
-            #     prem_len_len = len(prem_len)
-            #     prems_logits = logits[sen_end_index: sen_end_index + prem_len_len].flatten()
-            #     prems_probs = probs[sen_end_index: sen_end_index + prem_len_len].flatten()
-            #     rolled_logits[i, :prems_logits.shape[0]] = prems_logits
-            #     rolled_logits[i, input_dim // 2: (input_dim // 2) + prems_logits.shape[0]] = prems_probs
-            #     sen_end_index += prem_len_len
-            # agg_logits, agg_probs = aggregator(rolled_logits.to(device))
-            #
-            # labels = labels.to(device)
-            # loss = criterion(logits, flat_batch_labels.squeeze().to(device))
-            # agg_loss = agg_criterion(agg_logits, labels)
 
             _, agg_probs, loss, _ = \
                 forward_on_aggregator_with_loss(model, aggregator,
@@ -232,8 +186,8 @@ def train_with_agg(model,
                    max_gradient_norm,
                    aggregator,
                    agg_optimizer,
-                   agg_criterion):
-    num_sentences = 5
+                   agg_criterion,
+                   num_sentences):
     model.train()
     aggregator.train()
     device = model.device

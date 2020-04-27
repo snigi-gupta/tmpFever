@@ -40,7 +40,7 @@ if __name__ == "__main__":
     parser.add_argument('--model', type=str, required=False, help='path to pretrained model', )
     parser.add_argument('--db', type=str, default='data/fever/fever.db', help='/path/to/saved/db.db', )
     parser.add_argument('--sens', type=str, default='data/tmp/sen_preds.jsonl', help='file containing the predicted documents', )
-    parser.add_argument('--rte_preds', type=str, default='rte/coetaur0/data/test_preds.txt', help='file containing the predicted labels', )
+    parser.add_argument('--rte_preds', type=str, default='rte/coetaur0/data/test_preds_agg.txt', help='file containing the predicted labels', )
     parser.add_argument('--output', type=str, default='data/tmp/predictions.jsonl', help='file to write predicted sentences to', )
     parser.add_argument('--train_ds', type=str, default='data/fever-data/train.jsonl', help='training dataset', )
     parser.add_argument('--dev_ds', type=str, default='data/fever-data/dev.jsonl', help='development dataset', )
@@ -89,12 +89,12 @@ if __name__ == "__main__":
             line_indices_field = sample["indices"]
             pages_field = sample["page_ids"]
 
-            pred = int(rte_preds.readline().strip())
-            if pred == 2:
+            pred = rte_preds.readline().strip()
+            if pred == "2":
                 pred = "NOT ENOUGH INFO"
-            elif pred == 1:
+            elif pred == "1":
                 pred = "REFUTES"
-            elif pred == 0:
+            elif pred == "0":
                 pred = "SUPPORTS"
             print("rte pred: ", pred)
 

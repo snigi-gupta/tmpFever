@@ -152,21 +152,28 @@ def main(test_file, pretrained_file, batch_size, out_file,
 if __name__ == "__main__":
 
     config_path = "../../config/testing/fever_testing.json"
+    default_sen_config = "../../config/sentence_params.json"
     script_dir = os.path.dirname(os.path.realpath(__file__))
 
     config_path = os.path.join(script_dir, config_path)
     with open(os.path.normpath(config_path), 'r') as config_file:
         config = json.load(config_file)
 
+    sen_config_path = os.path.join(script_dir, default_sen_config)
+    with open(os.path.normpath(sen_config_path), 'r') as sen_config_file:
+        sen_config = json.load(sen_config_file)
+
     esim_ckp = os.path.join(script_dir, config["esim_checkpoint"])
     agg_ckp = os.path.join(script_dir, config["aggregator_checkpoint"])
+
+    print("Sentence config is: ", sen_config)
 
     main(config["test_data"],
          esim_ckp,
          config["batch_size"],
          config["out_file"],
-         config["num_sentences"],
+         sen_config["num_sentences"],
          config["use_aggregator"],
          agg_ckp,
-         config["premises_concat"],
-         config["max_premise_length"])
+         sen_config["premises_concat"],
+         sen_config["max_premise_length"])

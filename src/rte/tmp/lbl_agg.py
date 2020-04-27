@@ -5,7 +5,7 @@ import torch.nn as nn
 class LabelAggregator(nn.Module):
 
     label_int_val = {"SUPPORTS": 0, "REFUTES": 1, "NOT ENOUGH INFO": 2}
-    label_str_val = { i: s for s, i in label_int_val.items()}
+    label_str_val = {i: s for s, i in label_int_val.items()}
 
     def __init__(self, num_labels=3, num_sentences=5):
         super().__init__()

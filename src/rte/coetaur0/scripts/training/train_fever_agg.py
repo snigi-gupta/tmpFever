@@ -17,15 +17,13 @@ from rte.coetaur0.esim.fever_data import NLIDataset
 from rte.coetaur0.esim.model import ESIM
 from rte.tmp.lbl_agg import LabelAggregator
 
-from .utils import train, validate, validate_with_agg, train_with_agg
-
-
-
+from .utils import validate_with_agg, train_with_agg
 
 
 def custom_collate(batch):
-    #print("in collate fn. batch: ", batch)
-    res = {"premise": [], "premise_length":[],"hypothesis": [], "hypothesis_length": [], "label": torch.zeros(len(batch), dtype=torch.long) }
+    res = {"premise": [], "premise_length": [], "hypothesis": [],
+           "hypothesis_length": [],
+           "label": torch.zeros(len(batch), dtype=torch.long)}
     for i, sample in enumerate(batch, 0):
         res["premise"].append(sample["premise"])
         res["premise_length"].append(sample["premise_length"])
@@ -75,6 +73,11 @@ def main(train_file,
         patience: The patience to use for early stopping. Defaults to 5.
         checkpoint: A checkpoint from which to continue training. If None,
             training starts from scratch. Defaults to None.
+        max_premises_length: the maximum number of words to use for each sentence
+        premises_concat: indicates whether the sentences have been
+            concatenated together or kept separate.
+        agg_checkpoint: the checkpoint from which the aggregator should resume training
+        num_sentences: the maximum number of sentences included in each sample
     """
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
@@ -127,10 +130,6 @@ def main(train_file,
     agg_params = aggregator.parameters()
     print("type of parameters: ", type(agg_params))
     agg_optimizer = torch.optim.Adam(agg_params, lr=lr)
-    agg_scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer,
-                                                               mode="max",
-                                                               factor=0.5,
-                                                               patience=0)
 
     best_score = 0.0
     start_epoch = 1
@@ -174,7 +173,8 @@ def main(train_file,
                                                       valid_loader,
                                                       criterion,
                                                       aggregator,
-                                                      agg_criterion)
+                                                      agg_criterion,
+                                                      num_sentences)
     print("\t* Validation loss before training: {:.4f}, accuracy: {:.4f}%"
           .format(valid_loss, (valid_accuracy * 100)))
 
@@ -197,7 +197,8 @@ def main(train_file,
                                                                 max_grad_norm,
                                                                 aggregator,
                                                                 agg_optimizer,
-                                                                agg_criterion)
+                                                                agg_criterion,
+                                                                num_sentences)
 
         train_losses.append(epoch_loss)
         print("-> Training time: {:.4f}s, loss = {:.4f}, accuracy: {:.4f}%"
@@ -208,7 +209,8 @@ def main(train_file,
                                                                    valid_loader,
                                                                    criterion,
                                                                    aggregator,
-                                                                   agg_criterion)
+                                                                   agg_criterion,
+                                                                   num_sentences)
 
         valid_losses.append(epoch_loss)
         print("-> Valid. time: {:.4f}s, loss: {:.4f}, accuracy: {:.4f}%\n"
@@ -277,11 +279,17 @@ def main(train_file,
 
 if __name__ == "__main__":
     default_config = "../../config/training/fever_training.json"
+    default_sen_config = "../../config/sentence_params.json"
 
     parser = argparse.ArgumentParser(description="Train the ESIM model on SNLI")
     parser.add_argument("--config",
                         default=default_config,
                         help="Path to a json configuration file")
+    parser.add_argument(
+        "--sentence_config",
+        default=default_sen_config,
+        help="Path to a configuration file for sentence params"
+    )
     parser.add_argument("--checkpoint",
                         default=None,
                         help="Path to a checkpoint file to resume training")
@@ -298,8 +306,16 @@ if __name__ == "__main__":
     else:
         config_path = args.config
 
+    sen_config_path = args.sentence_config
+    if args.sentence_config == default_sen_config:
+        sen_config_path = os.path.join(script_dir, args.sentence_config)
+
     with open(os.path.normpath(config_path), 'r') as config_file:
         config = json.load(config_file)
+    with open(os.path.normpath(sen_config_path), "r") as sen_cfg_file:
+        sen_config = json.load(sen_cfg_file)
+
+    print("Sentence config is: ", sen_config)
 
     main(os.path.normpath(os.path.join(script_dir, config["train_data"])),
          os.path.normpath(os.path.join(script_dir, config["valid_data"])),
@@ -314,7 +330,7 @@ if __name__ == "__main__":
          config["patience"],
          config["max_gradient_norm"],
          args.checkpoint,
-         config["max_premises_length"],
-         config["premises_concat"],
+         sen_config["max_premises_length"],
+         sen_config["premises_concat"],
          args.agg_checkpoint,
-         config["num_sentences"])
+         sen_config["num_sentences"])

@@ -118,9 +118,6 @@ class Preprocessor(object):
             punct_table = str.maketrans({key: " "
                                          for key in string.punctuation})
 
-            # Ignore the headers on the first line of the file.
-            #next(input_data)
-
             for line in input_data:
                 line = json.loads(line)
 
@@ -135,20 +132,6 @@ class Preprocessor(object):
                             max_prem = premise[i]
                     premise = [p[3] for p in max_prem]
                     labels.append(line["label"])
-                #if concat_premises:
-                #    premise = " ".join(premise)
-
-                ## Remove '(' and ')' from the premises and hypotheses.
-                #premise = premise.translate(parentheses_table)
-                #hypothesis = hypothesis.translate(parentheses_table)
-
-                #if self.lowercase:
-                #    premise = premise.lower()
-                #    hypothesis = hypothesis.lower()
-
-                #if self.ignore_punctuation:
-                #    premise = premise.translate(punct_table)
-                #    hypothesis = hypothesis.translate(punct_table)
 
                 if self.concat_premises:
                     premise = self.preprocess_premises_concat(premise, parentheses_table, punct_table)
@@ -164,8 +147,6 @@ class Preprocessor(object):
                     hypothesis = hypothesis.translate(punct_table)
 
                 # Each premise and hypothesis is split into a list of words.
-                #premises.append([w for w in premise.rstrip().split()
-                #                 if w not in self.stopwords])
                 premises.append(premise)
                 hypotheses.append([w for w in hypothesis.rstrip().split()
                                    if w not in self.stopwords])
@@ -174,7 +155,6 @@ class Preprocessor(object):
             return {"ids": ids,
                     "premises": premises,
                     "hypotheses": hypotheses,
-                    #"labels": labels}
                     "labels": ["NOT ENOUGH INFO"] * len(premises) if testing else labels}
 
     def build_worddict(self, data):
