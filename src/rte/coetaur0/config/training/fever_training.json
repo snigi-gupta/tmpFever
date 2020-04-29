@@ -1,7 +1,7 @@
 {
     "train_data": "../../../../data/tmp/preprocessed/train_data.pkl",
     "valid_data": "../../../../data/tmp/preprocessed/dev_data.pkl",
-    "embeddings": "../../../../data/tmp/preprocessed//embeddings.pkl",
+    "embeddings": "../../../../data/tmp/preprocessed/embeddings.pkl",
 
     "target_dir": "../../data/checkpoints/fever",
     

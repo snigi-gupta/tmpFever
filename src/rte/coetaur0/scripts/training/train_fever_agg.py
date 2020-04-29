@@ -149,10 +149,10 @@ def main(train_file,
               .format(start_epoch))
 
         model.load_state_dict(checkpoint["model"])
-        optimizer.load_state_dict(checkpoint["optimizer"])
-        epochs_count = checkpoint["epochs_count"]
-        train_losses = checkpoint["train_losses"]
-        valid_losses = checkpoint["valid_losses"]
+        #optimizer.load_state_dict(checkpoint["optimizer"])
+        #epochs_count = checkpoint["epochs_count"]
+        #train_losses = checkpoint["train_losses"]
+        #valid_losses = checkpoint["valid_losses"]
 
     if agg_checkpoint:
         agg_checkpoint = torch.load(agg_checkpoint)
@@ -163,10 +163,10 @@ def main(train_file,
               .format(start_epoch))
 
         aggregator.load_state_dict(agg_checkpoint["model"])
-        agg_optimizer.load_state_dict(agg_checkpoint["optimizer"])
-        epochs_count = agg_checkpoint["epochs_count"]
-        train_losses = agg_checkpoint["train_losses"]
-        valid_losses = agg_checkpoint["valid_losses"]
+        #agg_optimizer.load_state_dict(agg_checkpoint["optimizer"])
+        #epochs_count = agg_checkpoint["epochs_count"]
+        #train_losses = agg_checkpoint["train_losses"]
+        #valid_losses = agg_checkpoint["valid_losses"]
 
     # Compute loss and accuracy before starting (or resuming) training.
     _, valid_loss, valid_accuracy = validate_with_agg(model,
@@ -280,6 +280,7 @@ def main(train_file,
 if __name__ == "__main__":
     default_config = "../../config/training/fever_training.json"
     default_sen_config = "../../config/sentence_params.json"
+    script_dir = os.path.dirname(os.path.realpath(__file__))
 
     parser = argparse.ArgumentParser(description="Train the ESIM model on SNLI")
     parser.add_argument("--config",
@@ -291,15 +292,14 @@ if __name__ == "__main__":
         help="Path to a configuration file for sentence params"
     )
     parser.add_argument("--checkpoint",
-                        default=None,
+                        default=os.path.join(script_dir, "../../data/checkpoints/fever/best.pth.tar"),
                         help="Path to a checkpoint file to resume training")
     parser.add_argument("--agg_checkpoint",
-                        default=None,
+                        default=os.path.join(script_dir, "../../data/checkpoints/fever/best_agg.pth.tar"),
                         help="Path to a checkpoint file to resume training for label aggregator")
 
     args = parser.parse_args()
 
-    script_dir = os.path.dirname(os.path.realpath(__file__))
 
     if args.config == default_config:
         config_path = os.path.join(script_dir, args.config)
@@ -330,7 +330,7 @@ if __name__ == "__main__":
          config["patience"],
          config["max_gradient_norm"],
          args.checkpoint,
-         sen_config["max_premises_length"],
+         sen_config["max_premise_length"],
          sen_config["premises_concat"],
          args.agg_checkpoint,
          sen_config["num_sentences"])

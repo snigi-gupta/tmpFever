@@ -158,18 +158,17 @@ def validate_with_agg(model,
             hypotheses_lengths = batch["hypothesis_length"]
             labels = batch["label"].to(device)
 
-            _, agg_probs, loss, _ = \
+            _, agg_probs, loss, total_sens = \
                 forward_on_aggregator_with_loss(model, aggregator,
                                                 criterion, agg_criterion,
                                                 premises, premises_lengths,
                                                 hypotheses, hypotheses_lengths,
                                                 labels, num_sentences, device)
-
+            total_num_sens += total_sens
             running_loss += loss.item()
             running_accuracy += correct_predictions(agg_probs.to(device), labels)
 
     epoch_time = time.time() - epoch_start
-    # epoch_loss = running_loss / len(dataloader)
     epoch_loss = running_loss / total_num_sens
     epoch_accuracy = running_accuracy / (len(dataloader.dataset))
     with open("val_acc", "a+") as f:

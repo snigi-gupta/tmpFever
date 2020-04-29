@@ -27,8 +27,6 @@ class LabelAggregator(nn.Module):
             nn.init.constant_(module.bias.data, 0.0)
 
     def forward(self, sen_logits):
-        #print("IN AGGREGATOR MODEL, received ", sen_logits)
-        #print("IN AGGREGATOR MODEL, input size: ", sen_logits.size())
         x = self.relu(self.fc1(sen_logits))
         x = self.relu(self.fc2(x))
         x = self.relu(self.fc3(x))

@@ -13,5 +13,5 @@
     "bos": "_BOS_",
     "eos": "_EOS_",
 
-    "testing": false
+    "testing": true
 }
