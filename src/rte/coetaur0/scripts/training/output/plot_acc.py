@@ -4,11 +4,11 @@ import matplotlib.pyplot as plt
 import argparse
 import os
 
-train_file = "train_loss"
-dev_file = "val_loss"
-title = "Loss Graph"
-ylabel = "Loss"
-save_path = "train_dev_loss.png"
+train_file = "./model_agg/agg_two_hidden/train_acc"
+dev_file = "./model_agg/agg_two_hidden/val_acc"
+title = "Accuracy Graph"
+ylabel = "Accuracy (%)"
+save_path = "./model_agg/agg_two_hidden/train_dev_loss.png"
 
 ##### MAIN
 
@@ -62,8 +62,8 @@ def read_vals(path):
 
 
 if __name__ == "__main__":
-    train_vals = read_vals(train_file)
-    dev_vals = read_vals(dev_file)
+    train_vals = [v * 100 for v in read_vals(train_file)]
+    dev_vals = [v * 100 for v in read_vals(dev_file)]
     epochs = range(1, len(train_vals) + 1)
     epoch_lbl = "Epoch"
     train_lbl = "Training"
