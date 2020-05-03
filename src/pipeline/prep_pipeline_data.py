@@ -9,7 +9,7 @@ import os
 
 def to_jsonl(data, fp):
     with open(fp, "w+") as f:
-        f.write(json.dumps(data))
+        f.write(json.dumps(data) + '\n')
 
 
 if __name__ == "__main__":

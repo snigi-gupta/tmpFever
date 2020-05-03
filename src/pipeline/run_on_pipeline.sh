@@ -1,6 +1,6 @@
 #!/bin/bash
-# controller: entry point that sets off the series of commands that run the pipeline remotely
-# created on 1 May 2020
+# run_on_pipeline: runs a claim on the pipeline that has already been initalized and running
+# created on 2 May 2020
 
 ######CONSTANTS
 
@@ -8,8 +8,12 @@ PIPELINE_DIR="/home/kikuchio/git_repos/635-nlp-group-project/tmpFever/src/pipeli
 PREP_SCRIPT="${PIPELINE_DIR}/prep_pipeline_data.py"
 PREP_DATA="${PIPELINE_DIR}/../data/tmp/pipeline_data.jsonl"
 
+#GCP_INSTANCE_NAME="instance-1"
+#GCP_INSTANCE_ZONE="us-east1-c"
+GCP_INSTANCE_NAME="instance-2"
+GCP_INSTANCE_ZONE="us-east1-d"
 VM_INPUT_DIR="~/nlp/src/data/tmp"
-VM_PIPELINE="~/nlp/src/pipeline/interactive_pipeline.sh"
+VM_PREDS_FILE="nlp/src/data/tmp/predictions.jsonl"
 
 #####FUNCTIONS
 
@@ -23,11 +27,11 @@ clean_up() {
 }
 
 send_to_vm() {
-	gcloud compute scp --recurse $* instance-1:"$VM_INPUT_DIR" --zone us-east1-c;
+	gcloud compute scp --recurse $* "$GCP_INSTANCE_NAME":"$VM_INPUT_DIR" --zone "$GCP_INSTANCE_ZONE"
 }
 
-start_pipeline() {
-  gcloud compute ssh instance-1 --zone us-east1-c --command "export PYTHONPATH=/home/kikuchio/nlp/src/ && $VM_PIPELINE"
+get_preds() {
+  gcloud compute scp --recurse "$GCP_INSTANCE_NAME":~/"$VM_PREDS_FILE" . --zone "$GCP_INSTANCE_ZONE"
 }
 
 ######MAIN
@@ -51,4 +55,8 @@ python -u "$PREP_SCRIPT" --claim "$1" --output "$PREP_DATA"
 
 send_to_vm "$PREP_DATA" 
 
-start_pipeline
+#sleep 2
+
+get_preds
+
+cat "predictions.jsonl"

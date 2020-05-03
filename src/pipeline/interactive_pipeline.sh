@@ -9,6 +9,7 @@ PIPELINE_DIR="/home/kikuchio/nlp/src"
 INPUT_PATH="data/tmp/pipeline_data.jsonl"
 DOC_PREDS_OUTPUT="data/tmp/doc_preds.jsonl"
 SEN_PREDS_OUTPUT="data/tmp/sen_preds.jsonl"
+LOG_FILE="pipeline.log"
 
 #####FUNCTIONS
 
@@ -27,7 +28,11 @@ clean_up() {
 trap clean_up SIGINT SIGTERM SIGHUP
 
 cd "$PIPELINE_DIR"
-rm "$DOC_PREDS_OUTPUT" "$SEN_PREDS_OUTPUT" &> /dev/null
+rm "$DOC_PREDS_OUTPUT" "$SEN_PREDS_OUTPUT" "$LOG_FILE" &> /dev/null
+pkill -f -9 "ret_pipeline"
+pkill -f -9 "active_preprocess_fever"
+pkill -f -9 "active_test_fever"
+pkill -f -9 "active_rte"
 
 case "$1" in
   "--help")
@@ -44,5 +49,11 @@ esac
 ## run sentence selection
 #echo "======= running sentence selection"
 #/opt/conda/bin/python -u -m pipeline.sen_ret 
-/opt/conda/bin/python -u -m pipeline.ret_pipeline --dataset "$INPUT_PATH"
+/opt/conda/bin/python -u -m pipeline.ret_pipeline --dataset "$INPUT_PATH" &>> "$LOG_FILE" &
+
+/opt/conda/bin/python -u -m rte.coetaur0.scripts.preprocessing.active_preprocess_fever &>> "$LOG_FILE" &
+
+/opt/conda/bin/python -u -m rte.coetaur0.scripts.testing.active_test_fever &>> "$LOG_FILE" &
+
+/opt/conda/bin/python -u -m pipeline.active_rte &>> "$LOG_FILE" &
 
