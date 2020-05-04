@@ -70,7 +70,6 @@ if __name__ == "__main__":
 
     logger.info("Load DB")
     db = FeverDocDB(args.db)
-    ####### BASELINE CODE. COMMENT IF NOT NEEDED #######
     jlr = JSONLineReader()
     formatter = FEVERGoldFormatter(set(), FEVERLabelSchema())
 
@@ -84,7 +83,6 @@ if __name__ == "__main__":
     logger.info("Generate vocab for TF-IDF")
     tf = XTermFrequencyFeatureFunction(db)
     tf.inform(train_ds.data, dev_ds.data)
-    ####################################################
 
     ##### SENTENCE RETREIVAL IMPLEMENTATION ############
     sen_retriever = TfidfSentenceRetriever()
@@ -121,11 +119,7 @@ if __name__ == "__main__":
                 line_indices_field = sample["indices"]
                 pages_field = sample["page_ids"]
 
-                ###### COMMENT THIS LINE WHEN IMPLEMENTATION IS READY ######
                 scores = tf_idf_sim(claim, lines_field, tf)
-
-                ###### UNCOMMENT THIS LINE WHEN IMPLEMENTATION IS READY ######
-                #scores = sen_retriever.score_sentences(claim, lines_field)
 
                 scores = list(zip(scores, pages_field, line_indices_field, lines_field))
                 scores = list(filter(lambda score: len(score[3].strip()), scores))

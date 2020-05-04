@@ -1,5 +1,5 @@
 """
-Train the ESIM model on the preprocessed SNLI dataset.
+Train the ESIM model on the preprocessed FEVER dataset.
 """
 # Aurelien Coet, 2018.
 
@@ -51,7 +51,7 @@ def main(train_file,
          agg_checkpoint=None,
          num_sentences=None):
     """
-    Train the ESIM model on the SNLI dataset.
+    Train the ESIM model on the FEVER dataset.
 
     Args:
         train_file: A path to some preprocessed data that must be used
@@ -282,7 +282,7 @@ if __name__ == "__main__":
     default_sen_config = "../../config/sentence_params.json"
     script_dir = os.path.dirname(os.path.realpath(__file__))
 
-    parser = argparse.ArgumentParser(description="Train the ESIM model on SNLI")
+    parser = argparse.ArgumentParser(description="Train the ESIM model on FEVER")
     parser.add_argument("--config",
                         default=default_config,
                         help="Path to a json configuration file")

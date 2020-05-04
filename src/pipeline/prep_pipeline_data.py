@@ -4,8 +4,6 @@ import argparse
 import json
 import os
 
-##### MAIN
-
 
 def to_jsonl(data, fp):
     with open(fp, "w+") as f:
@@ -20,11 +18,8 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     data = {}
-    data["id"] = 73
+    data["id"] = 73 # assign dummy id
     data["claim"] = args.claim
 
     to_jsonl(data, args.output)
-
-
-    
 

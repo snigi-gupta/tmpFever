@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-Preprocess the SNLI dataset and word embeddings to be used by the ESIM model.
+Preprocess the FEVER dataset and word embeddings to be used by the ESIM model.
 """
 # Aurelien Coet, 2018.
 
@@ -14,7 +14,7 @@ import time
 from rte.coetaur0.esim.fever_data import Preprocessor
 
 
-def preprocess_SNLI_data(inputdir,
+def preprocess_FEVER_data(inputdir,
                          embeddings_file,
                          targetdir,
                          lowercase=False,
@@ -27,7 +27,7 @@ def preprocess_SNLI_data(inputdir,
                          testing=False,
                          concat_premises=True):
     """
-    Preprocess the data from the SNLI corpus so it can be used by the
+    Preprocess the data from the FEVER corpus so it can be used by the
     ESIM model.
     Compute a worddict from the train set, and transform the words in
     the sentences of the corpus to their indices, as well as the labels.
@@ -104,11 +104,11 @@ if __name__ == "__main__":
     default_config = "../../config/preprocessing/fever_preprocessing.json"
     default_sen_config = "../../config/sentence_params.json"
 
-    parser = argparse.ArgumentParser(description="Preprocess the SNLI dataset")
+    parser = argparse.ArgumentParser(description="Preprocess the FEVER dataset")
     parser.add_argument(
         "--config",
         default=default_config,
-        help="Path to a configuration file for preprocessing SNLI"
+        help="Path to a configuration file for preprocessing FEVER"
     )
     parser.add_argument(
         "--sentence_config",
@@ -136,7 +136,7 @@ if __name__ == "__main__":
     print("Config is: ", config)
     print("Sentence config is: ", sen_config)
 
-    preprocess_SNLI_data(
+    preprocess_FEVER_data(
         os.path.normpath(os.path.join(script_dir, config["data_dir"])),
         os.path.normpath(os.path.join(script_dir, config["embeddings_file"])),
         os.path.normpath(os.path.join(script_dir, config["target_dir"])),

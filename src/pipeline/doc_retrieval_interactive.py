@@ -21,7 +21,6 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
     parser.add_argument('--db', type=str, default='data/fever/fever.db', help='/path/to/saved/db.db', )
-    # parser.add_argument('archive_file', type=str, default='', help='/path/to/saved/db.db')
     parser.add_argument("--model",type=str, required=False,
                         default="data/index/fever-tfidf-ngram=2-hash=16777216-tokenizer=simple.npz", help="model")
     parser.add_argument("--cuda-device", type=int, required=False,  default=0, help='id of GPU to use (if any)')

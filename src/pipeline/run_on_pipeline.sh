@@ -1,5 +1,5 @@
 #!/bin/bash
-# run_on_pipeline: runs a claim on the pipeline that has already been initalized and running
+# run_on_pipeline: prepares and sends a claim to be run on the pipeline
 # created on 2 May 2020
 
 ######CONSTANTS
@@ -18,8 +18,8 @@ VM_PREDS_FILE="nlp/src/data/tmp/predictions.jsonl"
 #####FUNCTIONS
 
 usage() {
-	echo "controller: entry point that sets off the series of commands that run the pipeline remotely"
-	echo -e "\nUsage: controller.sh [CLAIM]"
+	echo "run_on_pipeline: prepares and sends a claim to be run on the pipeline"
+	echo -e "\nUsage: run_on_pipeline.sh [CLAIM]"
 }
 
 clean_up() {
@@ -59,4 +59,3 @@ send_to_vm "$PREP_DATA"
 
 get_preds
 
-cat "predictions.jsonl"

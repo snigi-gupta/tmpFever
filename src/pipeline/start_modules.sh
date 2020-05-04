@@ -14,8 +14,8 @@ VM_PIPELINE="~/nlp/src/pipeline/interactive_pipeline.sh"
 #####FUNCTIONS
 
 usage() {
-	echo "start_modules: entry point that sets off the series of commands that start the pipeline modules remotely"
-	echo -e "\nUsage: start_modules.sh [CLAIM]"
+	echo "start_modules: initiates remote pipeline module processes that process the input"
+	echo -e "\nUsage: start_modules.sh"
 }
 
 clean_up() {
@@ -38,3 +38,4 @@ case "$1" in
 esac
 
 start_pipeline
+

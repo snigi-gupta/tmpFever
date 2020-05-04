@@ -32,7 +32,6 @@ if __name__ == "__main__":
     parser.add_argument('--output', type=str, default='data/tmp/doc_preds.jsonl', help='the file to which the output should be written', )
     parser.add_argument("--model",type=str, required=False,
                         default="data/index/fever-tfidf-ngram=2-hash=16777216-tokenizer=simple.npz", help="model")
-    parser.add_argument("--cuda-device", type=int, required=False,  default=0, help='id of GPU to use (if any)')
     args = parser.parse_args()
 
     out_dir = os.path.dirname(os.path.realpath(args.output))

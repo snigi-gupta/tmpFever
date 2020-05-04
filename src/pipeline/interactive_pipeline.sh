@@ -41,14 +41,6 @@ case "$1" in
         ;;
 esac
 
-# run doc retrieval
-#export PYTHONPATH="/home/kikuchio/nlp/src/" 
-#echo "======= running document retrieval"
-#/opt/conda/bin/python -u -m pipeline.doc_ret --dataset "$INPUT_PATH"
-#
-## run sentence selection
-#echo "======= running sentence selection"
-#/opt/conda/bin/python -u -m pipeline.sen_ret 
 /opt/conda/bin/python -u -m pipeline.ret_pipeline --dataset "$INPUT_PATH" &>> "$LOG_FILE" &
 
 /opt/conda/bin/python -u -m rte.coetaur0.scripts.preprocessing.active_preprocess_fever &>> "$LOG_FILE" &
