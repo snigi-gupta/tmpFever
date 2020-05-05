@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>FEVER Challenge: team tmp</title>
+		<style>
+div {
+  margin: 20px 20px 20px;
+  background-color: white;
+}
+</style>
+</head>
+<body>
+{% extends './navigation_bar.html' %}
+{% load static %}
+{% block content %}
+<div class="container">
+  <h2>FEVER Challenge: team tmp</h2>
+
+  <div class="input-group mb-3">
+		<form action="{% url 'fever:process_claim' %}" class="form-inline" method="post"> 
+			{% csrf_token %}
+		  <button type="submit" class="btn btn-light">Verify</button>
+			<input type="text" value="{{ claim }}" id="claim" name="claim" width="auto" class="form-control" aria-label="Username" aria-describedby="basic-addon1">
+  </form>
+  </div>
+
+
+	<h4>Label</h4>
+	<div>
+		<input type="text" disabled="true" value="{{ label }}" width="auto" id="label" name="label" width="auto" class="form-control" aria-label="Username" aria-describedby="basic-addon1">
+  </div>
+
+	<h4>Sentences</h4>
+
+{% for pair in evidence_pairs %}
+{# <div class="form-group mb-2" style="width:300px; display:table"> #}
+<div>
+	{# <form class="form-inline"> #}
+		{# <div class="form-group mb-2" style="width:300px; display:table"> #}
+		<label for="art" class="sr-only" style="display:table-cell" >Article</label>
+    <input type="text" name="art" id="art" value="{{ pair.article }}" readonly   style="display:table-cell" class="form-control" aria-label="Username" aria-describedby="basic-addon1">
+		{# </div> #}
+	{# <div class="form-group mx-sm-3 mb-2"> #}
+    <label for="sen" class="sr-only" style="display:table-cell" >Sentence</label>
+		{# <input type="text" name="sen" id="sen" value="{{ pair.sentence }}" disabled="true"  style="display:table-cell"  class="form-control" placeholder="Sentence 1" aria-label="Username" aria-describedby="basic-addon1"> #}
+		<p class="text-justify">{{ pair.sentence }}</p>
+		{# </div> #}
+	{# </form> #}
+</div>
+{% endfor %}
+
+</div>
+{% endblock %}
+</body>
+</html>
