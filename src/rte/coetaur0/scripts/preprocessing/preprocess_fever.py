@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-Preprocess the SNLI dataset and word embeddings to be used by the ESIM model.
+Preprocess the FEVER dataset and word embeddings to be used by the ESIM model.
 """
 # Aurelien Coet, 2018.
 
@@ -13,7 +13,7 @@ import json
 from rte.coetaur0.esim.fever_data import Preprocessor
 
 
-def preprocess_SNLI_data(inputdir,
+def preprocess_FEVER_data(inputdir,
                          embeddings_file,
                          targetdir,
                          lowercase=False,
@@ -22,9 +22,11 @@ def preprocess_SNLI_data(inputdir,
                          stopwords=[],
                          labeldict={},
                          bos=None,
-                         eos=None, testing=False):
+                         eos=None,
+                         testing=False,
+                         concat_premises=True):
     """
-    Preprocess the data from the SNLI corpus so it can be used by the
+    Preprocess the data from the FEVER corpus so it can be used by the
     ESIM model.
     Compute a worddict from the train set, and transform the words in
     the sentences of the corpus to their indices, as well as the labels.
@@ -50,6 +52,10 @@ def preprocess_SNLI_data(inputdir,
             tokens. If set to None, bos tokens aren't used. Defaults to None.
         eos: A string indicating the symbol to use for end of sentence tokens.
             If set to None, eos tokens aren't used. Defaults to None.
+        testing: indicates to the dataset preprocessor whether it is
+            preprocessing testing data (which does not contain labels),
+            or training and dev data (which contain labels).
+        concat_premises: concatenate the sentences together or keep them separate.
     """
     if not os.path.exists(targetdir):
         os.makedirs(targetdir)
@@ -73,11 +79,11 @@ def preprocess_SNLI_data(inputdir,
                                 stopwords=stopwords,
                                 labeldict=labeldict,
                                 bos=bos,
-                                eos=eos)
+                                eos=eos, concat_premises=concat_premises)
 
     # -------------------- Train data preprocessing -------------------- #
     if not testing:
-        print(20*"=", " Preprocessing train set ", 20*"=")
+        print(20 * "=", " Preprocessing train set ", 20 * "=")
         print("\t* Reading data...")
         data = preprocessor.read_data(os.path.join(inputdir, train_file))
 
@@ -93,7 +99,7 @@ def preprocess_SNLI_data(inputdir,
             pickle.dump(transformed_data, pkl_file)
 
         # -------------------- Validation data preprocessing -------------------- #
-        print(20*"=", " Preprocessing dev set ", 20*"=")
+        print(20 * "=", " Preprocessing dev set ", 20 * "=")
         print("\t* Reading data...")
         data = preprocessor.read_data(os.path.join(inputdir, dev_file))
 
@@ -103,14 +109,14 @@ def preprocess_SNLI_data(inputdir,
         with open(os.path.join(targetdir, "dev_data.pkl"), "wb") as pkl_file:
             pickle.dump(transformed_data, pkl_file)
 
-        #-------------------- Embeddings preprocessing -------------------- #
-        print(20*"=", " Preprocessing embeddings ", 20*"=")
+        # -------------------- Embeddings preprocessing -------------------- #
+        print(20 * "=", " Preprocessing embeddings ", 20 * "=")
         print("\t* Building embedding matrix and saving it...")
         embed_matrix = preprocessor.build_embedding_matrix(embeddings_file)
         with open(os.path.join(targetdir, "embeddings.pkl"), "wb") as pkl_file:
             pickle.dump(embed_matrix, pkl_file)
 
-    ## -------------------- Test data preprocessing -------------------- #
+    # -------------------- Test data preprocessing -------------------- #
     # since the test dataset depends on the predictions by the earlier stages
     # of the pipeline, we don't yet have the predicted evidence on which
     # the rte part is to be run, therefore we cannot preprocess the test
@@ -119,7 +125,7 @@ def preprocess_SNLI_data(inputdir,
         with open(os.path.join(targetdir, "worddict.pkl"), "rb") as pkl_file:
             preprocessor.worddict = pickle.load(pkl_file)
 
-        print(20*"=", " Preprocessing test set ", 20*"=")
+        print(20 * "=", " Preprocessing test set ", 20 * "=")
         print("\t* Reading data...")
 
         # here, test_file should contain predicted evidence
@@ -134,19 +140,18 @@ def preprocess_SNLI_data(inputdir,
 
 if __name__ == "__main__":
     default_config = "../../config/preprocessing/fever_preprocessing.json"
+    default_sen_config = "../../config/sentence_params.json"
 
-    parser = argparse.ArgumentParser(description="Preprocess the SNLI dataset")
+    parser = argparse.ArgumentParser(description="Preprocess the FEVER dataset")
     parser.add_argument(
         "--config",
         default=default_config,
-        help="Path to a configuration file for preprocessing SNLI"
+        help="Path to a configuration file for preprocessing FEVER"
     )
     parser.add_argument(
-        "--testing",
-        type=str,
-        default=False,
-        help="Indicates whether preprocessing is being invoked on the testing\
-        dataset, or on the embeddings and the training and dev datasets"
+        "--sentence_config",
+        default=default_sen_config,
+        help="Path to a configuration file for sentence params"
     )
     args = parser.parse_args()
 
@@ -157,13 +162,19 @@ if __name__ == "__main__":
     else:
         config_path = args.config
 
+    sen_config_path = args.sentence_config
+    if args.sentence_config == default_sen_config:
+        sen_config_path = os.path.join(script_dir, args.sentence_config)
+
     with open(os.path.normpath(config_path), "r") as cfg_file:
         config = json.load(cfg_file)
+    with open(os.path.normpath(sen_config_path), "r") as sen_cfg_file:
+        sen_config = json.load(sen_cfg_file)
 
-    config["testing"] = True if args.testing == "True" else False
     print("Config is: ", config)
+    print("Sentence config is: ", sen_config)
 
-    preprocess_SNLI_data(
+    preprocess_FEVER_data(
         os.path.normpath(os.path.join(script_dir, config["data_dir"])),
         os.path.normpath(os.path.join(script_dir, config["embeddings_file"])),
         os.path.normpath(os.path.join(script_dir, config["target_dir"])),
@@ -174,5 +185,6 @@ if __name__ == "__main__":
         labeldict=config["labeldict"],
         bos=config["bos"],
         eos=config["eos"],
-        testing=config["testing"]
+        testing=config["testing"],
+        concat_premises=sen_config["premises_concat"]
     )

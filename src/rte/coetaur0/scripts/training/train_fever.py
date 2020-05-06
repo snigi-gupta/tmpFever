@@ -1,5 +1,5 @@
 """
-Train the ESIM model on the preprocessed SNLI dataset.
+Train the ESIM model on the preprocessed FEVER dataset.
 """
 # Aurelien Coet, 2018.
 
@@ -30,9 +30,11 @@ def main(train_file,
          lr=0.0004,
          patience=5,
          max_grad_norm=10.0,
-         checkpoint=None):
+         checkpoint=None,
+         max_premises_length=None,
+         premises_concat=True):
     """
-    Train the ESIM model on the SNLI dataset.
+    Train the ESIM model on the FEVER dataset.
 
     Args:
         train_file: A path to some preprocessed data that must be used
@@ -65,13 +67,13 @@ def main(train_file,
     # -------------------- Data loading ------------------- #
     print("\t* Loading training data...")
     with open(train_file, "rb") as pkl:
-        train_data = NLIDataset(pickle.load(pkl))
+        train_data = NLIDataset(pickle.load(pkl), max_premise_length=max_premises_length, premises_concat=premises_concat)
 
     train_loader = DataLoader(train_data, shuffle=True, batch_size=batch_size)
 
     print("\t* Loading validation data...")
     with open(valid_file, "rb") as pkl:
-        valid_data = NLIDataset(pickle.load(pkl))
+        valid_data = NLIDataset(pickle.load(pkl), max_premise_length=max_premises_length, premises_concat=premises_concat)
 
     valid_loader = DataLoader(valid_data, shuffle=False, batch_size=batch_size)
 
@@ -206,11 +208,17 @@ def main(train_file,
 
 if __name__ == "__main__":
     default_config = "../../config/training/fever_training.json"
+    default_sen_config = "../../config/sentence_params.json"
 
-    parser = argparse.ArgumentParser(description="Train the ESIM model on SNLI")
+    parser = argparse.ArgumentParser(description="Train the ESIM model on FEVER")
     parser.add_argument("--config",
                         default=default_config,
                         help="Path to a json configuration file")
+    parser.add_argument(
+        "--sentence_config",
+        default=default_sen_config,
+        help="Path to a configuration file for sentence params"
+    )
     parser.add_argument("--checkpoint",
                         default=None,
                         help="Path to a checkpoint file to resume training")
@@ -223,8 +231,14 @@ if __name__ == "__main__":
     else:
         config_path = args.config
 
+    sen_config_path = args.sentence_config
+    if args.sentence_config == default_sen_config:
+        sen_config_path = os.path.join(script_dir, args.sentence_config)
+
     with open(os.path.normpath(config_path), 'r') as config_file:
         config = json.load(config_file)
+    with open(os.path.normpath(sen_config_path), "r") as sen_cfg_file:
+        sen_config = json.load(sen_cfg_file)
 
     main(os.path.normpath(os.path.join(script_dir, config["train_data"])),
          os.path.normpath(os.path.join(script_dir, config["valid_data"])),
@@ -238,4 +252,6 @@ if __name__ == "__main__":
          config["lr"],
          config["patience"],
          config["max_gradient_norm"],
-         args.checkpoint)
+         args.checkpoint,
+         sen_config["max_premise_length"],
+         sen_config["premises_concat"])

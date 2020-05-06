@@ -7,17 +7,16 @@ import time
 import pickle
 import argparse
 import torch
+import os
+import json
 
 from torch.utils.data import DataLoader
 from rte.coetaur0.esim.fever_data import NLIDataset
 from rte.coetaur0.esim.model import ESIM
 from rte.coetaur0.esim.utils import correct_predictions
-
-
-test_data = "/home/kikuchio/nlp/src/data/tmp/preprocessed/test_data.pkl"
-checkpoint = "/home/kikuchio/nlp/src/rte/coetaur0/data/checkpoints/fever/best.pth.tar"
-batch_size = 32
-out_file = "/home/kikuchio/nlp/src/rte/coetaur0/data/test_preds.txt"
+from rte.coetaur0.scripts.training.utils import forward_with_aggregator
+from rte.tmp.lbl_agg import LabelAggregator
+from rte.coetaur0.scripts.training.train_fever_agg import custom_collate
 
 
 def append_preds_to_file(preds, out_file):
@@ -32,7 +31,8 @@ def append_preds_to_file(preds, out_file):
             pred_file.write(label_text + "\n")
 
 
-def test(model, dataloader, out_file):
+def test(model, dataloader, out_file, num_sentences=5, use_aggregator=False,
+        aggregator=None, premises_concat=True):
     """
     Test the accuracy of a model on some labelled test dataset.
 
@@ -53,23 +53,41 @@ def test(model, dataloader, out_file):
             batch_start = time.time()
 
             # Move input and output data to the GPU if one is used.
-            premises = batch["premise"].to(device)
-            premises_lengths = batch["premise_length"].to(device)
-            hypotheses = batch["hypothesis"].to(device)
-            hypotheses_lengths = batch["hypothesis_length"].to(device)
-            labels = batch["label"].to(device)
+            if premises_concat:
+                premises = batch["premise"].to(device)
+                premises_lengths = batch["premise_length"].to(device)
+                hypotheses = batch["hypothesis"].to(device)
+                hypotheses_lengths = batch["hypothesis_length"].to(device)
+                labels = batch["label"].to(device)
+            else:
+                premises = batch["premise"]
+                premises_lengths = batch["premise_length"]
+                hypotheses = batch["hypothesis"]
+                hypotheses_lengths = batch["hypothesis_length"]
+                labels = batch["label"].to(device)
 
-            _, probs = model(premises,
-                             premises_lengths,
-                             hypotheses,
-                             hypotheses_lengths)
+
+            if use_aggregator:
+                aggregator.eval()
+                probs, _, _, _ = \
+                    forward_with_aggregator(model, aggregator, premises,
+                                            premises_lengths, hypotheses,
+                                            hypotheses_lengths, labels,
+                                            num_sentences, device)
+            else:
+                _, probs = model(premises,
+                                 premises_lengths,
+                                 hypotheses,
+                                 hypotheses_lengths)
 
             _, out_classes = probs.max(dim=1)
 
             append_preds_to_file(out_classes, out_file)
 
 
-def main(test_file, pretrained_file, out_file, batch_size=32):
+def main(test_file, pretrained_file, batch_size, out_file,
+         num_sentences=5, use_aggregator=False, aggregator_file=None,
+         premises_concat=True, max_premise_length=100):
     """
     Test the ESIM model with pretrained weights on some dataset.
 
@@ -100,9 +118,14 @@ def main(test_file, pretrained_file, out_file, batch_size=32):
 
     print("\t* Loading test data...")
     with open(test_file, "rb") as pkl:
-        test_data = NLIDataset(pickle.load(pkl))
+        test_data = NLIDataset(pickle.load(pkl), max_premise_length=max_premise_length,
+                premises_concat=premises_concat)
 
-    test_loader = DataLoader(test_data, shuffle=False, batch_size=batch_size)
+    if premises_concat:
+        test_loader = DataLoader(test_data, shuffle=False, batch_size=batch_size)
+    else:
+        test_loader = DataLoader(test_data, shuffle=False, batch_size=batch_size, collate_fn=custom_collate)
+
 
     print("\t* Building model...")
     model = ESIM(vocab_size,
@@ -113,27 +136,44 @@ def main(test_file, pretrained_file, out_file, batch_size=32):
 
     model.load_state_dict(checkpoint["model"])
 
+    aggregator = None
+    if use_aggregator:
+        agg_checkpoint = torch.load(aggregator_file)
+        aggregator = LabelAggregator(num_labels=num_classes,
+                                     num_sentences=num_sentences).to(device)
+        aggregator.load_state_dict(agg_checkpoint["model"])
+
     print(20 * "=",
           " Testing ESIM model on device: {} ".format(device),
           20 * "=")
-    test(model, test_loader, out_file)
+    test(model, test_loader, out_file, num_sentences, use_aggregator, aggregator, premises_concat)
 
 
 if __name__ == "__main__":
-    #parser = argparse.ArgumentParser(description="Test the ESIM model on\
-    # some dataset")
-    #parser.add_argument("test_data",
-    #                    help="Path to a file containing preprocessed test data", type=str,
-    #                    default="../../../../../data/tmp/preprocessed/test_data.pkl")
-    #parser.add_argument("checkpoint", type=str,
-    #                    help="Path to a checkpoint with a pretrained model",
-    #                    default="../../data/checkpoints/best.pth.tar")
-    #parser.add_argument("--batch_size", type=int, default=32,
-    #                    help="Batch size to use during testing")
-    #args = parser.parse_args()
 
+    config_path = "../../config/testing/fever_testing.json"
+    default_sen_config = "../../config/sentence_params.json"
+    script_dir = os.path.dirname(os.path.realpath(__file__))
 
-    main(test_data,
-         checkpoint, 
-         out_file,
-         batch_size)
+    config_path = os.path.join(script_dir, config_path)
+    with open(os.path.normpath(config_path), 'r') as config_file:
+        config = json.load(config_file)
+
+    sen_config_path = os.path.join(script_dir, default_sen_config)
+    with open(os.path.normpath(sen_config_path), 'r') as sen_config_file:
+        sen_config = json.load(sen_config_file)
+
+    esim_ckp = os.path.join(script_dir, config["esim_checkpoint"])
+    agg_ckp = os.path.join(script_dir, config["aggregator_checkpoint"])
+
+    print("Sentence config is: ", sen_config)
+
+    main(config["test_data"],
+         esim_ckp,
+         config["batch_size"],
+         config["out_file"],
+         sen_config["num_sentences"],
+         config["use_aggregator"],
+         agg_ckp,
+         sen_config["premises_concat"],
+         sen_config["max_premise_length"])

@@ -1,9 +1,10 @@
 {
-    "test_files": {"matched": "../../../../data/tmp/preprocessed/test_data.pkl",
-                   "mismatched": "../../data/preprocessed/MNLI/mismatched_test_data.pkl"},
-    "labeldict": {"SUPPORTS": 0,
-                  "REFUTES": 1,
-                  "NOT ENOUGH INFO": 2},
-    "output_dir": "../../data/results",
-    "batch_size": 32
+  "test_data": "/home/kikuchio/nlp/src/data/tmp/preprocessed/test_data.pkl",
+  "batch_size": 32,
+
+  "esim_checkpoint": "../../data/checkpoints/fever/best.pth.tar",
+  "aggregator_checkpoint": "../../data/checkpoints/fever/best_agg.pth.tar",
+
+  "out_file": "/home/kikuchio/nlp/src/rte/coetaur0/data/test_preds.txt",
+  "use_aggregator": true
 }

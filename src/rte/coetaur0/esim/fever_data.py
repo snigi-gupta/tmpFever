@@ -98,12 +98,12 @@ class Preprocessor(object):
         """
         Read the premises, hypotheses and labels from some NLI dataset's
         file and return them in a dictionary. The file should be in the same
-        form as SNLI's .txt files.
+        form as FEVER's .jsonl files.
 
         Args:
             filepath: The path to a file containing some premises, hypotheses
                 and labels that must be read. The file should be formatted in
-                the same way as the SNLI (and MultiNLI) dataset.
+                the same way as the FEVER dataset.
 
         Returns:
             A dictionary containing three lists, one for the premises, one for
@@ -135,20 +135,6 @@ class Preprocessor(object):
                             max_prem = premise[i]
                     premise = [p[3] for p in max_prem]
                     labels.append(line["label"])
-                #if concat_premises:
-                #    premise = " ".join(premise)
-
-                ## Remove '(' and ')' from the premises and hypotheses.
-                #premise = premise.translate(parentheses_table)
-                #hypothesis = hypothesis.translate(parentheses_table)
-
-                #if self.lowercase:
-                #    premise = premise.lower()
-                #    hypothesis = hypothesis.lower()
-
-                #if self.ignore_punctuation:
-                #    premise = premise.translate(punct_table)
-                #    hypothesis = hypothesis.translate(punct_table)
 
                 if self.concat_premises:
                     premise = self.preprocess_premises_concat(premise, parentheses_table, punct_table)
@@ -164,8 +150,6 @@ class Preprocessor(object):
                     hypothesis = hypothesis.translate(punct_table)
 
                 # Each premise and hypothesis is split into a list of words.
-                #premises.append([w for w in premise.rstrip().split()
-                #                 if w not in self.stopwords])
                 premises.append(premise)
                 hypotheses.append([w for w in hypothesis.rstrip().split()
                                    if w not in self.stopwords])
@@ -174,7 +158,6 @@ class Preprocessor(object):
             return {"ids": ids,
                     "premises": premises,
                     "hypotheses": hypotheses,
-                    #"labels": labels}
                     "labels": ["NOT ENOUGH INFO"] * len(premises) if testing else labels}
 
     def build_worddict(self, data):
@@ -446,24 +429,25 @@ class NLIDataset(Dataset):
             else:
                 self.data["premises"][i] = [None] * len(data["premises"][i])
                 for j, sentence in enumerate(premise, 0):
-                    self.data["premises"][i][j] = torch.ones(self.max_premise_length) * padding_idx
+                    self.data["premises"][i][j] = torch.ones(self.max_premise_length, dtype=torch.long) * padding_idx
                     sen_end = min(len(sentence), self.max_premise_length)
-                    self.data["premises"][i][j][:sen_end] = torch.tensor(sentence[:sen_end])
+                    self.data["premises"][i][j][:sen_end] = torch.tensor(sentence[:sen_end], dtype=torch.long)
 
             hypothesis = data["hypotheses"][i]
             end = min(len(hypothesis), self.max_hypothesis_length)
             self.data["hypotheses"][i][:end] = torch.tensor(hypothesis[:end])
-        print("first 10 premises: ", data["premises"][:10])
-        print("first 10 premises as tensors: ", self.data["premises"][:10])
 
     def __len__(self):
         return self.num_sequences
 
     def __getitem__(self, index):
+        prem_lens = [min(sen_len, self.max_premise_length)
+                                   for sen_len in self.premises_lengths[index]] \
+                                           if not self.premises_concat \
+                                           else min(self.premises_lengths[index], self.max_premise_length)
         return {"id": self.data["ids"][index],
                 "premise": self.data["premises"][index],
-                "premise_length": [min(sen_len, self.max_premise_length)
-                                   for sen_len in self.premises_lengths[index]],
+                "premise_length": prem_lens,
                 "hypothesis": self.data["hypotheses"][index],
                 "hypothesis_length": min(self.hypotheses_lengths[index],
                                          self.max_hypothesis_length),

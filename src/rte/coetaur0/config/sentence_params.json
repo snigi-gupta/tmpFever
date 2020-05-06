@@ -1,0 +1,5 @@
+{
+  "num_sentences": 5,
+  "max_premise_length": 100,
+  "premises_concat": false
+}

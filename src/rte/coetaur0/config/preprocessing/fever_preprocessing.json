@@ -11,5 +11,7 @@
                   "REFUTES": 1,
                   "NOT ENOUGH INFO": 2},
     "bos": "_BOS_",
-    "eos": "_EOS_"
+    "eos": "_EOS_",
+
+    "testing": true
 }
