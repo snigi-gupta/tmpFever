@@ -38,12 +38,12 @@ The code for the scoring program can be found at this repo
 
 The following breaks down each of the main files and briefly explains what each directory holds:
 
-1. **pipeline**: contains the scripts that integrate the different parts of the system togther 
-2. **doc_ret**: contains utility scripts and preocessing files and models related to document retrieval
-3. **rte**: contains the models, training loops, utility functions and checkpoints for the RTE module
+1. **pipeline**: contains the scripts that integrate the different parts of the system together 
+2. **doc_ret**: contains utility scripts and preprocessing files and models related to document retrieval
+3. **rte**: contains the models, training loops and utility functions for the ESIM and Aggregator modules which collectively make up the RTE stage
 4. **scripts**: contains general setup scripts
 5. **training**: contains some scripts that perform some preprocessing on the dataset in preparation for training
 6. **common**: contains some baseline code scripts and database classes that are essential for running the FEVER baseline model
-7. **fever-frontend**: contains a basic one-page django web application that exposes the functionality of the system through the pipeline scripts. To run the frontend, run the pipeline/start_modules.sh script which initializes the system, then start the application by runnin manage.py runserver
+7. **fever-frontend**: contains a basic one-page django web application that exposes the functionality of the system through the pipeline scripts. To run the frontend, run the pipeline/start_modules.sh script which initializes the system, then start the application by running manage.py runserver
 2. **retrieval**: contains the models for both the sentence and document retrieval stages
 
