@@ -7,6 +7,9 @@ All the files were taken from the original baseline code, which can be found [he
 Download the dataset by running the script `download-data.sh`. Create the wikipedia db by either downloading the pages
 and processing them to create a database, or download the preprocessed .db file by running `download-preprocessed.sh`
 
+The ESIM model weights can be found [here](https://drive.google.com/drive/folders/1LLaNqWyTsskAIj_aw5UeRe5SE-vdK9rV?usp=sharing)
+The NER model and MongoDB dump can be found [here](https://drive.google.com/drive/folders/1ByZIHFB5816RHSroIaRkvuullPBppBxQ?usp=sharing)
+
 ### Wikipedia
 Download pre-processed Wiki Dump
 ```bash
@@ -23,6 +26,8 @@ components involved in the document and sentence retrieval stages. In order to r
 the following python modules
 * fever-drqa
 * tqdm
+* orator
+* PyMySQL
 
 -Scoring
 The code for the scoring program can be found at this repo
