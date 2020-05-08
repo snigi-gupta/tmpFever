@@ -2,24 +2,9 @@ import os
 import argparse
 import json
 
-parser = argparse.ArgumentParser()
-parser.add_argument('true_values')
-parser.add_argument('pred_values')
-
-# "page_ids": ["Noticiero_Telemundo", "Noticias_Telemundo", "KTMO-LP", "KTMO-LP", "Noticias_Telemundo"], "indices": [0, 0, 3, 0, 8]
-
-# {"id": 91198,
-# "verifiable": "NOT VERIFIABLE",
-# "label": "NOT ENOUGH INFO",
-# "claim": "Colin Kaepernick became a starting quarterback during the 49ers 63rd season in the National Football League.",
-# "evidence": [[[108548, null, null, null]]]}
-# [[289914, 283015, "Soul_Food_-LRB-film-RRB-", 0]]
-
-args = parser.parse_args()
-
 true_hash = {}
 
-f = open(args.true_values)
+f = open('/home/anirudh/ub/cse635/tmpFever/src/data/fever-data/dev.jsonl', 'r')
 for line in f:
 	h = json.loads(line)
 	if h['verifiable'] == "NOT VERIFIABLE":
@@ -34,7 +19,7 @@ for line in f:
 f.close()
 
 pred_hash = {}
-f = open(args.pred_values)
+f = open('/home/anirudh/ub/cse635/tmpFever/src/data/tmp/doc_preds.jsonl', 'r')
 for line in f:
 	h = json.loads(line)
 	if h['id'] not in true_hash:
@@ -61,6 +46,26 @@ true_sen = 0
 sen_precision = 0
 sen_recall = 0
 
+'''
+tp = 0
+fp = 0
+tn = 0
+fn = 0
+
+for key, tvalue in true_hash.items():
+    pvalue = pred_hash[key]
+    tp += len(set(tvalue.keys()) & set(pvalue.keys()))
+    fp += len(set(pvalue.keys()) - set(tvalue.keys()))
+    fn += len(set(tvalue.keys()) - set(pvalue.keys()))
+
+precision = (tp) / (tp + fp)
+recall = (tp) / (tp + fn)
+f1 = 2 * ((precision * recall) / (precision + recall))
+print(f'precision = {precision}')
+print(f'recall = {recall}')
+print(f'f1 = {f1}')
+'''
+
 for key, tvalue in true_hash.items():
 	pvalue = pred_hash[key]
 	docs_matched += len(set(tvalue.keys()) & set(pvalue.keys()))
@@ -80,7 +85,7 @@ for key, tvalue in true_hash.items():
 				sen_recall += 1
 
 print(f'|V| = {true_docs}')
-
+print(f'{docs_recall}')
 print(f'DR Accuracy = {docs_matched / true_docs}')
 print(f'DR Macro Precision = {docs_precision / true_docs}')
 print(f'DR Macro Recall = {docs_recall / true_docs}')
