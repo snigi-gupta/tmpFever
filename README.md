@@ -15,6 +15,8 @@ The Siamese Network weights can be found [here](https://drive.google.com/drive/f
 
 The ESIM model weights can be found [here](https://drive.google.com/drive/folders/1LLaNqWyTsskAIj_aw5UeRe5SE-vdK9rV?usp=sharing)
 
+The final report can be found [here](https://drive.google.com/file/d/1g_UZdGS4q1eCRM3WGqQp-vheTYmaLGKb/view?usp=sharing)
+
 ### Wikipedia
 Download pre-processed Wiki Dump
 ```bash
