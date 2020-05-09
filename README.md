@@ -9,8 +9,9 @@ Some files were taken from the original baseline code, which can be found [here]
 Download the dataset by running the script `download-data.sh`. Create the wikipedia db by either downloading the pages
 and processing them to create a database, or download the preprocessed .db file by running `download-preprocessed.sh`
 
-The ESIM model weights can be found [here](https://drive.google.com/drive/folders/1LLaNqWyTsskAIj_aw5UeRe5SE-vdK9rV?usp=sharing)
 The NER model and MongoDB dump can be found [here](https://drive.google.com/drive/folders/1ByZIHFB5816RHSroIaRkvuullPBppBxQ?usp=sharing)
+The Siamese Network weights can be found [here](https://drive.google.com/drive/folders/1I6zLth9NtvqvSrYAitkCsLEiWm0bpRcu?usp=sharing)
+The ESIM model weights can be found [here](https://drive.google.com/drive/folders/1LLaNqWyTsskAIj_aw5UeRe5SE-vdK9rV?usp=sharing)
 
 ### Wikipedia
 Download pre-processed Wiki Dump
@@ -30,6 +31,17 @@ the following python modules
 * tqdm
 * orator
 * PyMySQL
+* torch
+* argparse
+* json
+* numpy
+* pandas
+* sklearn
+* logging
+* allennlp
+* spacy
+* pyglot
+* django
 
 -Scoring
 The code for the scoring program can be found at this repo
@@ -45,5 +57,3 @@ The following breaks down each of the main files and briefly explains what each 
 5. **training**: contains some scripts that perform some preprocessing on the dataset in preparation for training
 6. **common**: contains some baseline code scripts and database classes that are essential for running the FEVER baseline model
 7. **fever-frontend**: contains a basic one-page django web application that exposes the functionality of the system through the pipeline scripts. To run the frontend, run the pipeline/start_modules.sh script which initializes the system, then start the application by running manage.py runserver
-2. **retrieval**: contains the models for both the sentence and document retrieval stages
-
