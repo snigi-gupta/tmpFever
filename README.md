@@ -10,7 +10,9 @@ Download the dataset by running the script `download-data.sh`. Create the wikipe
 and processing them to create a database, or download the preprocessed .db file by running `download-preprocessed.sh`
 
 The NER model and MongoDB dump can be found [here](https://drive.google.com/drive/folders/1ByZIHFB5816RHSroIaRkvuullPBppBxQ?usp=sharing)
+
 The Siamese Network weights can be found [here](https://drive.google.com/drive/folders/1I6zLth9NtvqvSrYAitkCsLEiWm0bpRcu?usp=sharing)
+
 The ESIM model weights can be found [here](https://drive.google.com/drive/folders/1LLaNqWyTsskAIj_aw5UeRe5SE-vdK9rV?usp=sharing)
 
 ### Wikipedia
